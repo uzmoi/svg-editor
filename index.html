@@ -10,7 +10,7 @@
     <div id="app"></div>
     <script type="module">
       if(import.meta.env.DEV) {
-        const { default: app } = await import("/output/Main/index.js");
+        const app = await import("/output/Main/index.js");
         const res = app.main();
         console.log("Main module\n", app, "\nmain result\n", res);
       } else {

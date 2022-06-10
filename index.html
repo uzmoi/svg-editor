@@ -11,7 +11,7 @@
       if(import.meta.env.DEV) {
         const { default: app } = await import("/output/Main/index.js");
         const res = app.main();
-        console.log(app, res);
+        console.log("Main module\n", app, "\nmain result\n", res);
       } else {
         import("/output/build.js");
       }

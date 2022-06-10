@@ -3,13 +3,15 @@
   "name": "svg-editor",
   "scripts": {
     "build": "spago bundle-app --to output/build.js && vite build",
-    "watch": "spago build -wx",
-    "dev": "npx concurrently \"npm:watch\" \"> output/build.js && vite\"",
+    "dev:spago": "spago build -wx",
+    "dev:vite": "> output/build.js && vite",
+    "dev": "notios dev:spago dev:vite",
     "preview": "vite preview",
     "test": "spago test"
   },
   "devDependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
+    "notios": "^0.4.0",
     "purescript": "^0.14.9",
     "purty": "^7.0.0",
     "spago": "^0.20.7",

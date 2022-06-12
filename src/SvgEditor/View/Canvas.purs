@@ -1,9 +1,9 @@
 module SvgEditor.View.Canvas (canvasProps) where
 
-import Halogen.Svg.Attributes as HSA
-import SvgEditor.Canvas (Canvas)
 import Halogen.HTML.Properties (IProp)
+import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Indexed as I
+import SvgEditor.Canvas (Canvas)
 
 canvasProps :: Canvas -> forall i. Array (IProp I.SVGsvg i)
 canvasProps { viewBox } =

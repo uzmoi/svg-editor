@@ -1,6 +1,7 @@
 { name = "svg-editor"
 , dependencies =
   [ "aff"
+  , "arrays"
   , "console"
   , "effect"
   , "exceptions"
@@ -8,6 +9,7 @@
   , "halogen-svg-elems"
   , "maybe"
   , "prelude"
+  , "random"
   , "transformers"
   , "web-dom"
   , "web-html"

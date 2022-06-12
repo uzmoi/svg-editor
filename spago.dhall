@@ -5,6 +5,7 @@
   , "effect"
   , "exceptions"
   , "halogen"
+  , "halogen-svg-elems"
   , "maybe"
   , "prelude"
   , "transformers"

@@ -8,9 +8,13 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Svg.Elements as HSE
+import Halogen.Svg.Attributes (Color(..))
+import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
+import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import Halogen.Svg.Attributes.Path as SP
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
+import SvgEditor.Layer (FillRule(..))
 import SvgEditor.View.Layer (layer)
 import SvgEditor.View.Canvas (canvasProps)
 
@@ -89,6 +93,21 @@ appRoot =
                   , SP.l SP.Abs 100.0 100.0
                   , SP.z
                   ]
+              , fill:
+                  { color: RGB 0 0 0
+                  , opacity: 1.0
+                  , rule: NonZero
+                  }
+              , stroke:
+                  { color: RGB 0 0 0
+                  , opacity: 1.0
+                  , width: 1.0
+                  , dashOffset: 0.0
+                  , dashArray: ""
+                  , lineCap: LineCapButt
+                  , lineJoin: LineJoinBevel
+                  , miterLimit: 0.0
+                  }
               }
           }
     DeleteLayer ->

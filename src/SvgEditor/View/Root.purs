@@ -22,6 +22,7 @@ import SvgEditor.View.Canvas (canvasProps)
 data Action
   = AddLayer
   | DeleteLayer
+  | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
   | EditSelectedLayer (Layer -> Layer)
   | NOOP
@@ -54,28 +55,32 @@ appRoot =
 
   render { canvas, layers, selectedLayer } =
     HH.div_
-      [ HSE.svg (canvasProps canvas) $ layers # map layer
+      [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map layer
       , HH.ul_ $ layers
-          # map \{ id, name } ->
+          # map \{ id, name, show } ->
               HH.li_
                 [ HH.div
-                    [ HE.onClick $ \_ -> SelectLayer id
-                    , HP.class_ $ HH.ClassName if id == selectedLayer then "selected" else ""
+                    [ HP.class_ $ HH.ClassName if id == selectedLayer then "selected" else "" ]
+                    [ HH.p
+                        [ HE.onClick \_ -> SelectLayer id ]
+                        [ HH.text name ]
+                    , HH.button
+                        [ HE.onClick \_ -> EditLayer id _ { show = not show } ]
+                        [ HH.text $ if show then "hide" else "show" ]
                     ]
-                    [ HH.text name ]
                 ]
       , HH.button
-          [ HE.onClick $ \_ -> AddLayer ]
+          [ HE.onClick \_ -> AddLayer ]
           [ HH.text "add layer" ]
       , case layers # find \layer -> layer.id == selectedLayer of
           Just { name, stroke } ->
             HH.div_
               [ HH.input
                   [ HP.value name
-                  , HE.onValueInput $ \value -> EditSelectedLayer _ { name = value }
+                  , HE.onValueInput \value -> EditSelectedLayer _ { name = value }
                   ]
               , HH.button
-                  [ HE.onClick $ \_ -> DeleteLayer ]
+                  [ HE.onClick \_ -> DeleteLayer ]
                   [ HH.text "delete layer" ]
               , HH.div_
                   [ HH.text "stroke width"
@@ -99,6 +104,7 @@ appRoot =
             snoc state.layers
               { id
               , name: "Layer"
+              , show: true
               , drawPath:
                   [ SP.m SP.Abs 0.0 0.0
                   , SP.l SP.Abs 100.0 100.0
@@ -124,15 +130,13 @@ appRoot =
     DeleteLayer ->
       H.modify_ \state@{ selectedLayer } ->
         state { layers = state.layers # filter \layer -> layer.id /= selectedLayer }
+    EditLayer id f ->
+      H.modify_ \state ->
+        state { layers = state.layers # map \layer -> if layer.id == id then f layer else layer }
     SelectLayer id ->
       H.modify_ \state ->
         state { selectedLayer = if state.selectedLayer == id then -1 else id }
-    EditSelectedLayer f ->
-      H.modify_ \state@{ selectedLayer } ->
-        state
-          { layers =
-            state.layers
-              # map \layer ->
-                  if layer.id == selectedLayer then f layer else layer
-          }
+    EditSelectedLayer f -> do
+      { selectedLayer } <- H.get
+      handleAction $ EditLayer selectedLayer f
     NOOP -> pure unit

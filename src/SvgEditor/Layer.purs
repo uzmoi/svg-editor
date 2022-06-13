@@ -14,6 +14,7 @@ import Halogen.Svg.Attributes (PathCommand, Color, StrokeLineCap, StrokeLineJoin
 type Layer
   = { id :: Int
     , name :: String
+    , show :: Boolean
     , drawPath :: Array PathCommand
     , fill :: Fill
     , stroke :: Stroke

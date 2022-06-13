@@ -3,6 +3,7 @@ module SvgEditor.View.Root (appRoot) where
 import Prelude
 import Data.Array (filter, find, snoc)
 import Data.Maybe (Maybe(..))
+import Data.Number (fromString)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -14,7 +15,7 @@ import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import Halogen.Svg.Attributes.Path as SP
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
-import SvgEditor.Layer (FillRule(..))
+import SvgEditor.Layer (Layer, FillRule(..))
 import SvgEditor.View.Layer (layer)
 import SvgEditor.View.Canvas (canvasProps)
 
@@ -22,7 +23,8 @@ data Action
   = AddLayer
   | DeleteLayer
   | SelectLayer Int
-  | EditLayerName String
+  | EditSelectedLayer (Layer -> Layer)
+  | NOOP
 
 appRoot :: forall query message. H.Component query Unit message Aff
 appRoot =
@@ -66,15 +68,24 @@ appRoot =
           [ HE.onClick $ \_ -> AddLayer ]
           [ HH.text "add layer" ]
       , case layers # find \layer -> layer.id == selectedLayer of
-          Just { name } ->
+          Just { name, stroke } ->
             HH.div_
               [ HH.input
                   [ HP.value name
-                  , HE.onValueInput $ EditLayerName
+                  , HE.onValueInput $ \value -> EditSelectedLayer _ { name = value }
                   ]
               , HH.button
                   [ HE.onClick $ \_ -> DeleteLayer ]
                   [ HH.text "delete layer" ]
+              , HH.div_
+                  [ HH.text "stroke width"
+                  , HH.input
+                      [ HP.value $ show stroke.width
+                      , HE.onValueInput \value -> case fromString value of
+                          Just width -> EditSelectedLayer _ { stroke { width = width } }
+                          Nothing -> NOOP
+                      ]
+                  ]
               ]
           Nothing -> HH.div_ []
       ]
@@ -116,11 +127,12 @@ appRoot =
     SelectLayer id ->
       H.modify_ \state ->
         state { selectedLayer = if state.selectedLayer == id then -1 else id }
-    EditLayerName name ->
+    EditSelectedLayer f ->
       H.modify_ \state@{ selectedLayer } ->
         state
           { layers =
             state.layers
               # map \layer ->
-                  if layer.id == selectedLayer then layer { name = name } else layer
+                  if layer.id == selectedLayer then f layer else layer
           }
+    NOOP -> pure unit

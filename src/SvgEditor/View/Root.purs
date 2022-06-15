@@ -9,7 +9,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Svg.Elements as HSE
-import Halogen.Svg.Attributes (Color(..))
+import Halogen.Svg.Attributes (class_, Color(..))
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import Effect.Aff (Aff)
@@ -18,6 +18,7 @@ import SvgEditor.Layer (Layer, FillRule(..))
 import SvgEditor.PathCommand (PathCommand(..), Pos(..))
 import SvgEditor.View.Layer (layer)
 import SvgEditor.View.Canvas (canvasProps)
+import SvgEditor.View.Overlay (overlay)
 
 data Action
   = AddLayer
@@ -56,6 +57,12 @@ appRoot =
   render { canvas, layers, selectedLayer } =
     HH.div_
       [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map layer
+      , case layers # filter _.show # find (_.id >>> (==) selectedLayer) of
+          (Just layer) ->
+            HSE.svg
+              (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
+              $ overlay layer.drawPath
+          Nothing -> HH.div_ []
       , HH.ul_ $ layers
           # map \{ id, name, show } ->
               HH.li_

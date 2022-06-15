@@ -12,10 +12,10 @@ import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes (Color(..))
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
-import Halogen.Svg.Attributes.Path as SP
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, FillRule(..))
+import SvgEditor.PathCommand (PathCommand(..), Pos(..))
 import SvgEditor.View.Layer (layer)
 import SvgEditor.View.Canvas (canvasProps)
 
@@ -106,9 +106,9 @@ appRoot =
               , name: "Layer"
               , show: true
               , drawPath:
-                  [ SP.m SP.Abs 0.0 0.0
-                  , SP.l SP.Abs 100.0 100.0
-                  , SP.z
+                  [ Move Abs { x: 0.0, y: 0.0 }
+                  , Line Abs { x: 100.0, y: 100.0 }
+                  , Close
                   ]
               , fill:
                   { color: RGB 0 0 0

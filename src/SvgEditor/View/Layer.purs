@@ -11,6 +11,7 @@ import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import SvgEditor.Layer (Layer, FillRule(..), fillRule)
+import SvgEditor.PathCommand (toHalogenPathCommand)
 
 -- FIXME: HSA.strokeOpacity :: ... (strokeOpacity :: String ...) ...
 strokeOpacity :: forall r i. Number -> IProp ( strokeOpacity :: Number | r ) i
@@ -33,7 +34,7 @@ layer :: forall a b. Layer -> HH.HTML a b
 layer { drawPath, fill, stroke } =
   HSE.path
     $ catMaybes
-        [ Just $ HSA.d drawPath
+        [ Just $ HSA.d (drawPath # map toHalogenPathCommand)
         , justIf transparent HSA.fill fill.color
         , justIf ((==) 1.0) HSA.fillOpacity fill.opacity
         , justIf ((==) NonZero) fillRule fill.rule

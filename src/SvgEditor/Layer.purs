@@ -9,7 +9,8 @@ module SvgEditor.Layer
 import Prelude
 import Halogen.HTML as H
 import Halogen.HTML.Properties (IProp, attr)
-import Halogen.Svg.Attributes (PathCommand, Color, StrokeLineCap, StrokeLineJoin)
+import Halogen.Svg.Attributes (Color, StrokeLineCap, StrokeLineJoin)
+import SvgEditor.PathCommand (PathCommand)
 
 type Layer
   = { id :: Int

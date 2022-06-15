@@ -72,7 +72,7 @@ appRoot =
       , HH.button
           [ HE.onClick \_ -> AddLayer ]
           [ HH.text "add layer" ]
-      , case layers # find \layer -> layer.id == selectedLayer of
+      , case layers # find (_.id >>> (==) selectedLayer) of
           Just { name, stroke } ->
             HH.div_
               [ HH.input
@@ -129,7 +129,7 @@ appRoot =
           }
     DeleteLayer ->
       H.modify_ \state@{ selectedLayer } ->
-        state { layers = state.layers # filter \layer -> layer.id /= selectedLayer }
+        state { layers = state.layers # filter (_.id >>> (/=) selectedLayer) }
     EditLayer id f ->
       H.modify_ \state ->
         state { layers = state.layers # map \layer -> if layer.id == id then f layer else layer }

@@ -33,6 +33,8 @@ data FillRule
   = NonZero
   | EvenOdd
 
+derive instance eqFillRule :: Eq FillRule
+
 instance showFillRule :: Show FillRule where
   show NonZero = "nonzero"
   show EvenOdd = "evenodd"

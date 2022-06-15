@@ -8,9 +8,11 @@
   , "halogen"
   , "halogen-svg-elems"
   , "maybe"
+  , "numbers"
   , "prelude"
   , "random"
   , "transformers"
+  , "unsafe-coerce"
   , "web-dom"
   , "web-html"
   ]

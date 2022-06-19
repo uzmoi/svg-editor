@@ -1,4 +1,4 @@
-module SvgEditor.View.Canvas.Layer (layer) where
+module SvgEditor.View.Canvas.Layer (svgLayer) where
 
 import Prelude
 import Data.Array (catMaybes)
@@ -8,9 +8,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties (IProp)
 import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes as HSA
-import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
-import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
-import SvgEditor.Layer (Layer, FillRule(..), fillRule)
+import SvgEditor.Layer (Layer, fillRule, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (toHalogenPathCommand)
 
 -- FIXME: HSA.strokeOpacity :: ... (strokeOpacity :: String ...) ...
@@ -30,20 +28,20 @@ transparent = case _ of
   HSA.Named "transparent" -> true
   _ -> false
 
-layer :: forall a b. Layer -> HH.HTML a b
-layer { drawPath, fill, stroke } =
+svgLayer :: forall a b. Layer -> HH.HTML a b
+svgLayer { drawPath, fill, stroke } =
   HSE.path
     $ catMaybes
         [ Just $ HSA.d (drawPath # map toHalogenPathCommand)
         , justIf transparent HSA.fill fill.color
-        , justIf ((==) 1.0) HSA.fillOpacity fill.opacity
-        , justIf ((==) NonZero) fillRule fill.rule
+        , justIf ((==) defaultFill.opacity) HSA.fillOpacity fill.opacity
+        , justIf ((==) defaultFill.rule) fillRule fill.rule
         , justIf transparent HSA.stroke stroke.color
-        , justIf ((==) 1.0) strokeOpacity stroke.opacity
-        , justIf ((==) 1.0) HSA.strokeWidth stroke.width
-        , justIf ((==) 0.0) strokeDashOffset stroke.dashOffset
-        , justIf ((==) "") HSA.strokeDashArray stroke.dashArray
-        , justIf ((==) LineCapButt) HSA.strokeLineCap stroke.lineCap
-        , justIf ((==) LineJoinMiter) HSA.strokeLineJoin stroke.lineJoin
-        , justIf ((==) 4.0) HSA.strokeMiterLimit stroke.miterLimit
+        , justIf ((==) defaultStroke.opacity) strokeOpacity stroke.opacity
+        , justIf ((==) defaultStroke.width) HSA.strokeWidth stroke.width
+        , justIf ((==) defaultStroke.dashOffset) strokeDashOffset stroke.dashOffset
+        , justIf ((==) defaultStroke.dashArray) HSA.strokeDashArray stroke.dashArray
+        , justIf ((==) defaultStroke.lineCap) HSA.strokeLineCap stroke.lineCap
+        , justIf ((==) defaultStroke.lineJoin) HSA.strokeLineJoin stroke.lineJoin
+        , justIf ((==) defaultStroke.miterLimit) HSA.strokeMiterLimit stroke.miterLimit
         ]

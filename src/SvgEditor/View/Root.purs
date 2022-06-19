@@ -11,15 +11,12 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Halogen.Svg.Attributes (Color(..))
-import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
-import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
-import SvgEditor.Layer (Layer, FillRule(..))
+import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), Pos(..), Vec2)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 
@@ -127,21 +124,8 @@ appRoot =
                   , Line Abs { x: 100.0, y: 100.0 }
                   , Close
                   ]
-              , fill:
-                  { color: RGB 0 0 0
-                  , opacity: 1.0
-                  , rule: NonZero
-                  }
-              , stroke:
-                  { color: RGB 0 0 0
-                  , opacity: 1.0
-                  , width: 1.0
-                  , dashOffset: 0.0
-                  , dashArray: ""
-                  , lineCap: LineCapButt
-                  , lineJoin: LineJoinBevel
-                  , miterLimit: 0.0
-                  }
+              , fill: defaultFill
+              , stroke: defaultStroke
               }
           }
     DeleteLayer ->

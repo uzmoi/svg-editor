@@ -19,7 +19,7 @@ import Web.UIEvent.MouseEvent (MouseEvent)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand, Vec2)
-import SvgEditor.View.Canvas.Layer (layer)
+import SvgEditor.View.Canvas.Layer (svgLayer)
 import SvgEditor.View.Canvas.Overlay (overlay)
 
 canvasProps :: Canvas -> forall i. Array (IProp I.SVGsvg i)
@@ -48,7 +48,7 @@ svgCanvas f g canvas layers selectedLayer =
     , HP.class_ $ HH.ClassName "canvas-container"
     , HE.onMouseMove f
     ]
-    [ HSE.svg (canvasProps canvas) $ showLayers # map layer
+    [ HSE.svg (canvasProps canvas) $ showLayers # map svgLayer
     , case showLayers # find (_.id >>> (==) selectedLayer) of
         (Just layer) ->
           HSE.svg

@@ -1,4 +1,4 @@
-module SvgEditor.View.Overlay
+module SvgEditor.View.Canvas.Overlay
   ( overlay
   ) where
 

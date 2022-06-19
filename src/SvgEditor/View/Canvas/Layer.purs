@@ -1,4 +1,4 @@
-module SvgEditor.View.Layer (layer) where
+module SvgEditor.View.Canvas.Layer (layer) where
 
 import Prelude
 import Data.Array (catMaybes)

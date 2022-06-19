@@ -11,8 +11,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Halogen.Svg.Elements as HSE
-import Halogen.Svg.Attributes (class_, Color(..))
+import Halogen.Svg.Attributes (Color(..))
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import Web.HTML.HTMLElement (toElement)
@@ -22,9 +21,7 @@ import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, FillRule(..))
 import SvgEditor.PathCommand (PathCommand(..), Pos(..), Vec2)
-import SvgEditor.View.Layer (layer)
-import SvgEditor.View.Canvas (canvasProps)
-import SvgEditor.View.Overlay (overlay)
+import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 
 data Action
   = AddLayer
@@ -68,23 +65,9 @@ appRoot =
     , dragging: Nothing
     }
 
-  canvasContainerRef = H.RefLabel "canvasContainer"
-
   render { canvas, layers, selectedLayer, cursorPos } =
     HH.div [ HE.onMouseUp \_ -> DragEnd ]
-      [ HH.div
-          [ HP.ref canvasContainerRef
-          , HP.class_ $ HH.ClassName "canvas-container"
-          , HE.onMouseMove Drag
-          ]
-          [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map layer
-          , case layers # filter _.show # find (_.id >>> (==) selectedLayer) of
-              (Just layer) ->
-                HSE.svg
-                  (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-                  $ overlay DragStart layer.drawPath
-              Nothing -> HH.div_ []
-          ]
+      [ svgCanvas Drag DragStart canvas layers selectedLayer
       , HH.p_
           [ HH.text $ toFixed cursorPos.x
           , HH.text ", "

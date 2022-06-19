@@ -5,12 +5,10 @@ import Data.Tuple (Tuple(..))
 import Data.Array (filter, find, updateAt, snoc)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber)
-import Data.Number (fromString)
 import Data.Number.Format (toStringWith, fixed)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
@@ -20,6 +18,7 @@ import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), Pos(..), Vec2)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
+import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
   = AddLayer
@@ -78,27 +77,14 @@ appRoot =
           }
           layers
           selectedLayer
-      , case layers # find (_.id >>> (==) selectedLayer) of
-          Just { name, stroke } ->
-            HH.div_
-              [ HH.input
-                  [ HP.value name
-                  , HE.onValueInput \value -> EditSelectedLayer _ { name = value }
-                  ]
-              , HH.button
-                  [ HE.onClick \_ -> DeleteLayer ]
-                  [ HH.text "delete layer" ]
-              , HH.div_
-                  [ HH.text "stroke width"
-                  , HH.input
-                      [ HP.value $ show stroke.width
-                      , HE.onValueInput \value -> case fromString value of
-                          Just width -> EditSelectedLayer _ { stroke { width = width } }
-                          Nothing -> NOOP
-                      ]
-                  ]
-              ]
-          Nothing -> HH.div_ []
+      , layers # find (_.id >>> (==) selectedLayer)
+          # ( maybe (HH.div_ [])
+                $ layerInfo
+                    { editLayer: EditSelectedLayer
+                    , deleteLayer: DeleteLayer
+                    , noop: NOOP
+                    }
+            )
       ]
 
   handleAction = case _ of

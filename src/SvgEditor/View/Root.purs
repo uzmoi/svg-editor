@@ -19,6 +19,7 @@ import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), Pos(..), Vec2)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
+import SvgEditor.View.LayerList (layerList)
 
 data Action
   = AddLayer
@@ -70,22 +71,13 @@ appRoot =
           , HH.text ", "
           , HH.text $ toFixed cursorPos.y
           ]
-      , HH.ul_ $ layers
-          # map \{ id, name, show } ->
-              HH.li_
-                [ HH.div
-                    [ HP.class_ $ HH.ClassName if id == selectedLayer then "selected" else "" ]
-                    [ HH.p
-                        [ HE.onClick \_ -> SelectLayer id ]
-                        [ HH.text name ]
-                    , HH.button
-                        [ HE.onClick \_ -> EditLayer id _ { show = not show } ]
-                        [ HH.text $ if show then "hide" else "show" ]
-                    ]
-                ]
-      , HH.button
-          [ HE.onClick \_ -> AddLayer ]
-          [ HH.text "add layer" ]
+      , layerList
+          { addLayer: AddLayer
+          , selectLayer: SelectLayer
+          , editLayer: EditLayer
+          }
+          layers
+          selectedLayer
       , case layers # find (_.id >>> (==) selectedLayer) of
           Just { name, stroke } ->
             HH.div_

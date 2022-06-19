@@ -9,10 +9,14 @@ body {
 }
 
 #app {
+  max-width: 40em;
+}
+
+.canvas-container {
   position: relative;
 }
 
-.overlay {
+.canvas-container .overlay {
   position: absolute;
   top: 0;
   left: 0;

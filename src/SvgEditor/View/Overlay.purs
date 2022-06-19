@@ -3,31 +3,28 @@ module SvgEditor.View.Overlay
   ) where
 
 import Prelude
-import Data.Array (concatMap)
+import Data.Array (concat, mapWithIndex)
+import Data.Tuple (Tuple(..))
 import Halogen.HTML as HH
-import Data.Array (concatMap)
+import Halogen.HTML.Events as HE
 import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Attributes (Color(..))
-import SvgEditor.PathCommand (PathCommand(..))
+import SvgEditor.PathCommand (PathCommand, Vec2, points)
 
-overlay :: forall a b. Array PathCommand -> Array (HH.HTML a b)
-overlay pathCommands =
-  pathCommands
-    # concatMap \pathCommand ->
-        map
-          ( \v ->
-              HSE.circle
-                [ HSA.cx v.x
-                , HSA.cy v.y
-                , HSA.r 1.0
-                , HSA.fill $ Named "black"
-                ]
-          ) case pathCommand of
-          Move ref v -> [ v ]
-          Line ref v -> [ v ]
-          Bez3 ref v1 v2 v3 -> [ v1, v2, v3 ]
-          Bez3' ref v1 v2 -> [ v1, v2 ]
-          Bez2 ref v1 v2 -> [ v1, v2 ]
-          Bez2' ref v1 -> [ v1 ]
-          Close -> []
+overlayPoint ::
+  forall a b.
+  ((Vec2 -> PathCommand) -> b) ->
+  Tuple Vec2 (Vec2 -> PathCommand) ->
+  HH.HTML a b
+overlayPoint f (Tuple v updateV) =
+  HSE.circle
+    [ HSA.cx v.x
+    , HSA.cy v.y
+    , HSA.r 1.0
+    , HSA.fill $ Named "black"
+    , HE.onMouseDown \_ -> f updateV
+    ]
+
+overlay :: forall a b. (Int -> (Vec2 -> PathCommand) -> b) -> Array PathCommand -> Array (HH.HTML a b)
+overlay f = concat <<< mapWithIndex \i -> map (overlayPoint $ f i) <<< points

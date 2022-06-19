@@ -1,9 +1,12 @@
 module SvgEditor.View.Root (appRoot) where
 
 import Prelude
-import Data.Array (filter, find, snoc)
-import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
+import Data.Array (filter, find, updateAt, snoc)
+import Data.Maybe (Maybe(..), maybe)
+import Data.Int (toNumber)
 import Data.Number (fromString)
+import Data.Number.Format (toStringWith, fixed)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -12,10 +15,13 @@ import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes (class_, Color(..))
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
+import Web.HTML.HTMLElement (toElement)
+import Web.DOM.Element (getBoundingClientRect)
+import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, FillRule(..))
-import SvgEditor.PathCommand (PathCommand(..), Pos(..))
+import SvgEditor.PathCommand (PathCommand(..), Pos(..), Vec2)
 import SvgEditor.View.Layer (layer)
 import SvgEditor.View.Canvas (canvasProps)
 import SvgEditor.View.Overlay (overlay)
@@ -26,7 +32,13 @@ data Action
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
   | EditSelectedLayer (Layer -> Layer)
+  | DragStart Int (Vec2 -> PathCommand)
+  | Drag MouseEvent
+  | DragEnd
   | NOOP
+
+toFixed :: Number -> String
+toFixed = toStringWith $ fixed 1
 
 appRoot :: forall query message. H.Component query Unit message Aff
 appRoot =
@@ -52,17 +64,32 @@ appRoot =
         }
     , layers: []
     , selectedLayer: -1
+    , cursorPos: { x: 0.0, y: 0.0 }
+    , dragging: Nothing
     }
 
-  render { canvas, layers, selectedLayer } =
-    HH.div_
-      [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map layer
-      , case layers # filter _.show # find (_.id >>> (==) selectedLayer) of
-          (Just layer) ->
-            HSE.svg
-              (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-              $ overlay layer.drawPath
-          Nothing -> HH.div_ []
+  canvasContainerRef = H.RefLabel "canvasContainer"
+
+  render { canvas, layers, selectedLayer, cursorPos } =
+    HH.div [ HE.onMouseUp \_ -> DragEnd ]
+      [ HH.div
+          [ HP.ref canvasContainerRef
+          , HP.class_ $ HH.ClassName "canvas-container"
+          , HE.onMouseMove Drag
+          ]
+          [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map layer
+          , case layers # filter _.show # find (_.id >>> (==) selectedLayer) of
+              (Just layer) ->
+                HSE.svg
+                  (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
+                  $ overlay DragStart layer.drawPath
+              Nothing -> HH.div_ []
+          ]
+      , HH.p_
+          [ HH.text $ toFixed cursorPos.x
+          , HH.text ", "
+          , HH.text $ toFixed cursorPos.y
+          ]
       , HH.ul_ $ layers
           # map \{ id, name, show } ->
               HH.li_
@@ -146,4 +173,29 @@ appRoot =
     EditSelectedLayer f -> do
       { selectedLayer } <- H.get
       handleAction $ EditLayer selectedLayer f
+    DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
+    DragEnd -> H.modify_ _ { dragging = Nothing }
+    Drag e ->
+      H.getHTMLElementRef canvasContainerRef
+        >>= case _ of
+            Just canvasContainerEl -> do
+              canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
+              { canvas: { viewBox }, layers, selectedLayer, dragging } <- H.get
+              let
+                offsetX = (e # clientX # toNumber) - canvasContainerRect.left
+
+                offsetY = (e # clientY # toNumber) - canvasContainerRect.top
+
+                cursorPos =
+                  { x: offsetX * (viewBox.right - viewBox.left) / canvasContainerRect.width
+                  , y: offsetY * (viewBox.bottom - viewBox.top) / canvasContainerRect.height
+                  }
+              H.modify_ _ { cursorPos = cursorPos }
+              handleAction
+                $ maybe NOOP EditSelectedLayer do
+                    Tuple i j <- dragging
+                    layer <- layers # find (_.id >>> (==) selectedLayer)
+                    drawPath <- layer.drawPath # updateAt i (j cursorPos)
+                    Just _ { drawPath = drawPath }
+            Nothing -> pure unit
     NOOP -> pure unit

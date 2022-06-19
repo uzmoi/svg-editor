@@ -2,10 +2,11 @@ module SvgEditor.PathCommand
   ( PathCommand(..)
   , Pos(..)
   , Vec2
+  , points
   , toHalogenPathCommand
   ) where
 
-import Prelude
+import Data.Tuple (Tuple(..))
 import Halogen.Svg.Attributes.Path as SP
 
 type Vec2
@@ -24,6 +25,26 @@ data PathCommand
   | Bez2' Pos Vec2
   -- | Arc Pos Number Boolean Boolean Vec2
   | Close
+
+points :: PathCommand -> Array (Tuple Vec2 (Vec2 -> PathCommand))
+points = case _ of
+  Move ref v -> [ Tuple v \w -> Move ref w ]
+  Line ref v -> [ Tuple v \w -> Line ref w ]
+  Bez3 ref v1 v2 v3 ->
+    [ Tuple v1 \w -> Bez3 ref w v2 v3
+    , Tuple v2 \w -> Bez3 ref v1 w v3
+    , Tuple v3 \w -> Bez3 ref v1 v2 w
+    ]
+  Bez3' ref v1 v2 ->
+    [ Tuple v1 \w -> Bez3' ref w v2
+    , Tuple v2 \w -> Bez3' ref v1 w
+    ]
+  Bez2 ref v1 v2 ->
+    [ Tuple v1 \w -> Bez2 ref w v2
+    , Tuple v2 \w -> Bez2 ref v1 w
+    ]
+  Bez2' ref v1 -> [ Tuple v1 \w -> Bez2' ref w ]
+  Close -> []
 
 toHalogenPathCommand :: PathCommand -> SP.PathCommand
 toHalogenPathCommand = case _ of

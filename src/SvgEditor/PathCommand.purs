@@ -7,6 +7,7 @@ module SvgEditor.PathCommand
   , toHalogenPathCommand
   ) where
 
+import Prelude
 import Data.Tuple (Tuple(..))
 import Halogen.Svg.Attributes.Path as SP
 
@@ -39,8 +40,8 @@ nextPoint = case _ of
 
 points :: PathCommand -> Array (Tuple Vec2 (Vec2 -> PathCommand))
 points = case _ of
-  Move ref v -> [ Tuple v \w -> Move ref w ]
-  Line ref v -> [ Tuple v \w -> Line ref w ]
+  Move ref v -> [ Tuple v $ Move ref ]
+  Line ref v -> [ Tuple v $ Line ref ]
   Bez3 ref v1 v2 v3 ->
     [ Tuple v1 \w -> Bez3 ref w v2 v3
     , Tuple v2 \w -> Bez3 ref v1 w v3
@@ -54,17 +55,20 @@ points = case _ of
     [ Tuple v1 \w -> Bez2 ref w v2
     , Tuple v2 \w -> Bez2 ref v1 w
     ]
-  Bez2' ref v1 -> [ Tuple v1 \w -> Bez2' ref w ]
+  Bez2' ref v1 -> [ Tuple v1 $ Bez2' ref ]
   Close -> []
+
+applyVec :: forall r. (Number -> Number -> r) -> Vec2 -> r
+applyVec f v = f v.x v.y
 
 toHalogenPathCommand :: PathCommand -> SP.PathCommand
 toHalogenPathCommand = case _ of
-  Move ref v -> SP.m (toHalogenPos ref) v.x v.y
-  Line ref v -> SP.l (toHalogenPos ref) v.x v.y
-  Bez3 ref v1 v2 v3 -> SP.c (toHalogenPos ref) v1.x v1.y v2.x v2.y v3.x v3.y
-  Bez3' ref v1 v2 -> SP.s (toHalogenPos ref) v1.x v1.y v2.x v2.y
-  Bez2 ref v1 v2 -> SP.q (toHalogenPos ref) v1.x v1.y v2.x v2.y
-  Bez2' ref v1 -> SP.t (toHalogenPos ref) v1.x v1.y
+  Move ref v -> SP.m (toHalogenPos ref) `applyVec` v
+  Line ref v -> SP.l (toHalogenPos ref) `applyVec` v
+  Bez3 ref v1 v2 v3 -> SP.c (toHalogenPos ref) `applyVec` v1 `applyVec` v2 `applyVec` v3
+  Bez3' ref v1 v2 -> SP.s (toHalogenPos ref) `applyVec` v1 `applyVec` v2
+  Bez2 ref v1 v2 -> SP.q (toHalogenPos ref) `applyVec` v1 `applyVec` v2
+  Bez2' ref v1 -> SP.t (toHalogenPos ref) `applyVec` v1
   Close -> SP.z
 
 toHalogenPos :: Pos -> SP.CommandPositionReference

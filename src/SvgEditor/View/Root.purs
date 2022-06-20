@@ -2,7 +2,7 @@ module SvgEditor.View.Root (appRoot) where
 
 import Prelude
 import Data.Tuple (Tuple(..))
-import Data.Array (filter, find, updateAt, snoc)
+import Data.Array (filter, find, insertAt, updateAt, snoc)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber)
 import Data.Number.Format (toStringWith, fixed)
@@ -26,6 +26,7 @@ data Action
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
   | EditSelectedLayer (Layer -> Layer)
+  | AddPoint Int
   | DragStart Int (Vec2 -> PathCommand)
   | Drag MouseEvent
   | DragEnd
@@ -64,7 +65,7 @@ appRoot =
 
   render { canvas, layers, selectedLayer, cursorPos } =
     HH.div [ HE.onMouseUp \_ -> DragEnd ]
-      [ svgCanvas Drag DragStart canvas layers selectedLayer
+      [ svgCanvas Drag DragStart AddPoint canvas layers selectedLayer
       , HH.p_
           [ HH.text $ toFixed cursorPos.x
           , HH.text ", "
@@ -118,6 +119,15 @@ appRoot =
     EditSelectedLayer f -> do
       { selectedLayer } <- H.get
       handleAction $ EditLayer selectedLayer f
+    AddPoint i -> do
+      { layers, selectedLayer, cursorPos } <- H.get
+      let
+        point = Line Abs
+      handleAction
+        $ maybe NOOP EditSelectedLayer do
+            layer <- layers # find (_.id >>> (==) selectedLayer)
+            drawPath <- layer.drawPath # insertAt i (point cursorPos)
+            Just _ { drawPath = drawPath }
     DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
     DragEnd -> H.modify_ _ { dragging = Nothing }
     Drag e ->

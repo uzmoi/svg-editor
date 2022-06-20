@@ -4,7 +4,7 @@ module SvgEditor.View.Canvas
   ) where
 
 import Prelude
-import Data.Array (filter, find, snoc)
+import Data.Array (filter, find, snoc, concat)
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
@@ -20,7 +20,7 @@ import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand, Vec2)
 import SvgEditor.View.Canvas.Layer (svgLayer)
-import SvgEditor.View.Canvas.Overlay (overlay)
+import SvgEditor.View.Canvas.Overlay (overlayPoints, overlayLines)
 
 canvasProps :: Canvas -> forall i. Array (IProp I.SVGsvg i)
 canvasProps { viewBox } =
@@ -38,11 +38,12 @@ svgCanvas ::
   forall a b.
   (MouseEvent -> b) ->
   (Int -> (Vec2 -> PathCommand) -> b) ->
+  (Int -> b) ->
   Canvas ->
   Array Layer ->
   Int ->
   HH.HTML a b
-svgCanvas f g canvas layers selectedLayer =
+svgCanvas f g h canvas layers selectedLayer =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
@@ -53,7 +54,7 @@ svgCanvas f g canvas layers selectedLayer =
         (Just layer) ->
           HSE.svg
             (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-            $ overlay g layer.drawPath
+            $ concat [ overlayLines h layer.drawPath, overlayPoints g layer.drawPath ]
         Nothing -> HH.div_ []
     ]
   where

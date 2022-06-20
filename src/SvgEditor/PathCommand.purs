@@ -2,6 +2,7 @@ module SvgEditor.PathCommand
   ( PathCommand(..)
   , Pos(..)
   , Vec2
+  , nextPoint
   , points
   , toHalogenPathCommand
   ) where
@@ -25,6 +26,16 @@ data PathCommand
   | Bez2' Pos Vec2
   -- | Arc Pos Number Boolean Boolean Vec2
   | Close
+
+nextPoint :: PathCommand -> Vec2
+nextPoint = case _ of
+  Move _ v -> v
+  Line _ v -> v
+  Bez3 _ _ _ v -> v
+  Bez3' _ _ v -> v
+  Bez2 _ _ v -> v
+  Bez2' _ v -> v
+  Close -> { x: 0.0, y: 0.0 }
 
 points :: PathCommand -> Array (Tuple Vec2 (Vec2 -> PathCommand))
 points = case _ of

@@ -7,12 +7,18 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import SvgEditor.Layer (Layer)
+import SvgEditor.PathCommand (PathCommand)
+import SvgEditor.View.DrawPath (drawPath)
 
 layerInfo ::
   forall a b.
-  { editLayer :: (Layer -> Layer) -> b, deleteLayer :: b, noop :: b } ->
+  { editLayer :: (Layer -> Layer) -> b
+  , deleteLayer :: b
+  , editCommand :: Int -> PathCommand -> b
+  , noop :: b
+  } ->
   Layer -> HH.HTML a b
-layerInfo actions { name, stroke } =
+layerInfo actions { name, drawPath: drawPath', stroke } =
   HH.div_
     [ HH.input
         [ HP.value name
@@ -30,4 +36,5 @@ layerInfo actions { name, stroke } =
                     actions.editLayer _ { stroke { width = width } }
             ]
         ]
+    , drawPath { editCommand: actions.editCommand, noop: actions.noop } drawPath'
     ]

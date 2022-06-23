@@ -2,6 +2,7 @@ module SvgEditor.PathCommand
   ( PathCommand(..)
   , Pos(..)
   , Vec2
+  , commandName
   , nextPoint
   , points
   , toHalogenPathCommand
@@ -27,6 +28,16 @@ data PathCommand
   | Bez2' Pos Vec2
   -- | Arc Pos Number Boolean Boolean Vec2
   | Close
+
+commandName :: PathCommand -> String
+commandName = case _ of
+  Move _ _ -> "Move"
+  Line _ _ -> "Line"
+  Bez3 _ _ _ _ -> "Bezier3"
+  Bez3' _ _ _ -> "Bezier3"
+  Bez2 _ _ _ -> "Bezier2"
+  Bez2' _ _ -> "Bezier2"
+  Close -> "Close"
 
 nextPoint :: PathCommand -> Vec2
 nextPoint = case _ of

@@ -26,7 +26,8 @@ data Action
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
   | EditSelectedLayer (Layer -> Layer)
-  | AddPoint Int
+  | AddCommand Int
+  | EditCommand Int PathCommand
   | DragStart Int (Vec2 -> PathCommand)
   | Drag MouseEvent
   | DragEnd
@@ -65,7 +66,7 @@ appRoot =
 
   render { canvas, layers, selectedLayer, cursorPos } =
     HH.div [ HE.onMouseUp \_ -> DragEnd ]
-      [ svgCanvas Drag DragStart AddPoint canvas layers selectedLayer
+      [ svgCanvas Drag DragStart AddCommand canvas layers selectedLayer
       , HH.p_
           [ HH.text $ toFixed cursorPos.x
           , HH.text ", "
@@ -83,6 +84,7 @@ appRoot =
                 $ layerInfo
                     { editLayer: EditSelectedLayer
                     , deleteLayer: DeleteLayer
+                    , editCommand: EditCommand
                     , noop: NOOP
                     }
             )
@@ -119,7 +121,7 @@ appRoot =
     EditSelectedLayer f -> do
       { selectedLayer } <- H.get
       handleAction $ EditLayer selectedLayer f
-    AddPoint i -> do
+    AddCommand i -> do
       { layers, selectedLayer, cursorPos } <- H.get
       let
         point = Line Abs
@@ -128,6 +130,13 @@ appRoot =
             layer <- layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # insertAt i (point cursorPos)
             Just _ { drawPath = drawPath }
+    EditCommand i j -> do
+      { layers, selectedLayer } <- H.get
+      handleAction
+        $ maybe NOOP EditSelectedLayer do
+            layer <- layers # find (_.id >>> (==) selectedLayer)
+            drawPath <- layer.drawPath # updateAt i j
+            Just _ { drawPath = drawPath }
     DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
     DragEnd -> H.modify_ _ { dragging = Nothing }
     Drag e ->
@@ -135,7 +144,7 @@ appRoot =
         >>= case _ of
             Just canvasContainerEl -> do
               canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
-              { canvas: { viewBox }, layers, selectedLayer, dragging } <- H.get
+              { canvas: { viewBox }, dragging } <- H.get
               let
                 offsetX = (e # clientX # toNumber) - canvasContainerRect.left
 
@@ -146,11 +155,6 @@ appRoot =
                   , y: offsetY * (viewBox.bottom - viewBox.top) / canvasContainerRect.height
                   }
               H.modify_ _ { cursorPos = cursorPos }
-              handleAction
-                $ maybe NOOP EditSelectedLayer do
-                    Tuple i j <- dragging
-                    layer <- layers # find (_.id >>> (==) selectedLayer)
-                    drawPath <- layer.drawPath # updateAt i (j cursorPos)
-                    Just _ { drawPath = drawPath }
+              handleAction $ dragging # maybe NOOP \(Tuple i j) -> EditCommand i $ j cursorPos
             Nothing -> pure unit
     NOOP -> pure unit

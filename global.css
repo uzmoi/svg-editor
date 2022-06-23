@@ -16,6 +16,10 @@ body {
   position: relative;
 }
 
+.canvas-container svg {
+  vertical-align: top;
+}
+
 .canvas-container .overlay {
   position: absolute;
   top: 0;

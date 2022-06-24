@@ -9,6 +9,7 @@ import Data.Number.Format (toStringWith, fixed)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
@@ -65,29 +66,35 @@ appRoot =
     }
 
   render { canvas, layers, selectedLayer, cursorPos } =
-    HH.div [ HE.onMouseUp \_ -> DragEnd ]
-      [ svgCanvas Drag DragStart AddCommand canvas layers selectedLayer
-      , HH.p_
-          [ HH.text $ toFixed cursorPos.x
-          , HH.text ", "
-          , HH.text $ toFixed cursorPos.y
+    HH.div
+      [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
+      [ HH.div
+          [ HP.class_ $ HH.ClassName "center-panel" ]
+          [ svgCanvas Drag DragStart AddCommand canvas layers selectedLayer ]
+      , HH.div
+          [ HP.class_ $ HH.ClassName "right-panel" ]
+          [ HH.p_
+              [ HH.text $ toFixed cursorPos.x
+              , HH.text ", "
+              , HH.text $ toFixed cursorPos.y
+              ]
+          , layerList
+              { addLayer: AddLayer
+              , selectLayer: SelectLayer
+              , editLayer: EditLayer
+              }
+              layers
+              selectedLayer
+          , layers # find (_.id >>> (==) selectedLayer)
+              # ( maybe (HH.div_ [])
+                    $ layerInfo
+                        { editLayer: EditSelectedLayer
+                        , deleteLayer: DeleteLayer
+                        , editCommand: EditCommand
+                        , noop: NOOP
+                        }
+                )
           ]
-      , layerList
-          { addLayer: AddLayer
-          , selectLayer: SelectLayer
-          , editLayer: EditLayer
-          }
-          layers
-          selectedLayer
-      , layers # find (_.id >>> (==) selectedLayer)
-          # ( maybe (HH.div_ [])
-                $ layerInfo
-                    { editLayer: EditSelectedLayer
-                    , deleteLayer: DeleteLayer
-                    , editCommand: EditCommand
-                    , noop: NOOP
-                    }
-            )
       ]
 
   handleAction = case _ of

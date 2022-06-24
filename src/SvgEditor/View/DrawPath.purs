@@ -17,25 +17,27 @@ drawPath ::
   { editCommand :: Int -> PathCommand -> b, noop :: b } ->
   Array PathCommand -> HH.HTML a b
 drawPath actions pathCommands =
-  HH.div_
-    [ HH.ul_ $ pathCommands
-        # mapWithIndex \i pathCommand ->
-            HH.li_
-              [ HH.text $ commandName pathCommand
-              , HH.div_ $ points pathCommand
-                  # map \(Tuple v updateV) -> point i v updateV
-              ]
-    ]
+  HH.ul
+    [ HP.class_ $ HH.ClassName "draw-path-commands" ]
+    $ pathCommands
+    # mapWithIndex \i pathCommand ->
+        HH.li_
+          [ HH.text $ commandName pathCommand
+          , HH.div_ $ points pathCommand
+              # map \(Tuple v updateV) -> point i v updateV
+          ]
   where
   point i v updateV =
     HH.div_
       [ HH.input
           [ HP.value $ show v.x
           , HE.onValueInput $ handleEditVec \x -> v { x = x }
+          , HP.class_ $ HH.ClassName "number-input"
           ]
       , HH.input
           [ HP.value $ show v.y
           , HE.onValueInput $ handleEditVec \y -> v { y = y }
+          , HP.class_ $ HH.ClassName "number-input"
           ]
       ]
     where

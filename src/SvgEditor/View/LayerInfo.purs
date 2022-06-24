@@ -19,7 +19,8 @@ layerInfo ::
   } ->
   Layer -> HH.HTML a b
 layerInfo actions { name, drawPath: drawPath', stroke } =
-  HH.div_
+  HH.div
+    [ HP.class_ $ HH.ClassName "layer-info" ]
     [ HH.input
         [ HP.value name
         , HE.onValueInput \value -> actions.editLayer _ { name = value }
@@ -34,6 +35,7 @@ layerInfo actions { name, drawPath: drawPath', stroke } =
             , HE.onValueInput $ fromString
                 >>> maybe actions.noop \width ->
                     actions.editLayer _ { stroke { width = width } }
+            , HP.class_ $ HH.ClassName "number-input"
             ]
         ]
     , drawPath { editCommand: actions.editCommand, noop: actions.noop } drawPath'

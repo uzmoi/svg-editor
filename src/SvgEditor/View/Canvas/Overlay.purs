@@ -39,7 +39,9 @@ overlayLine :: forall a b. b -> Tuple Vec2 PathCommand -> HH.HTML a b
 overlayLine f (Tuple v0 pathCommand) =
   HSE.path
     [ HSA.d [ SP.m SP.Abs v0.x v0.y, toHalogenPathCommand pathCommand ]
+    , HSA.fillOpacity 0.0
     , HSA.stroke $ Named "black"
+    , HSA.strokeDashArray "4"
     , HE.onClick \_ -> f
     ]
 

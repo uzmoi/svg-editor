@@ -17,7 +17,7 @@ layerInfo ::
   , editCommand :: Int -> PathCommand -> a
   } ->
   Layer -> HH.ComponentHTML a Slot Aff
-layerInfo actions { name, drawPath: drawPath', stroke } =
+layerInfo actions { name, drawPath: drawPath', fill, stroke } =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]
     [ HH.input
@@ -28,9 +28,29 @@ layerInfo actions { name, drawPath: drawPath', stroke } =
         [ HE.onClick \_ -> actions.deleteLayer ]
         [ HH.text "delete layer" ]
     , HH.div_
+        [ HH.text "fill-opacity"
+        , numberInput "layer-info.fill-opacity" fill.opacity \x ->
+            actions.editLayer _ { fill { opacity = x } }
+        ]
+    , HH.div_
+        [ HH.text "stroke-opacity"
+        , numberInput "layer-info.stroke-opacity" stroke.opacity \x ->
+            actions.editLayer _ { stroke { opacity = x } }
+        ]
+    , HH.div_
         [ HH.text "stroke-width"
-        , numberInput "layer-info.stroke-width" stroke.width \width ->
-            actions.editLayer _ { stroke { width = width } }
+        , numberInput "layer-info.stroke-width" stroke.width \x ->
+            actions.editLayer _ { stroke { width = x } }
+        ]
+    , HH.div_
+        [ HH.text "dash-offset"
+        , numberInput "layer-info.dash-offset" stroke.dashOffset \x ->
+            actions.editLayer _ { stroke { dashOffset = x } }
+        ]
+    , HH.div_
+        [ HH.text "miter-limit"
+        , numberInput "layer-info.miter-limit" stroke.miterLimit \x ->
+            actions.editLayer _ { stroke { miterLimit = x } }
         ]
     , drawPath { editCommand: actions.editCommand } drawPath'
     ]

@@ -11,7 +11,6 @@ module SvgEditor.Layer
 import Prelude
 import Halogen.HTML as H
 import Halogen.HTML.Properties (IProp, attr)
-import Halogen.Svg.Attributes (Color(..))
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import SvgEditor.PathCommand (PathCommand)
@@ -27,14 +26,14 @@ type Layer
 
 -- Fill
 type Fill
-  = { color :: Color
+  = { color :: String
     , opacity :: Number
     , rule :: FillRule
     }
 
 defaultFill :: Fill
 defaultFill =
-  { color: RGB 0 0 0
+  { color: "transparent"
   , opacity: 1.0
   , rule: NonZero
   }
@@ -55,7 +54,7 @@ instance showFillRule :: Show FillRule where
 
 -- Stroke
 type Stroke
-  = { color :: Color
+  = { color :: String
     , opacity :: Number
     , width :: Number
     , dashOffset :: Number
@@ -67,7 +66,7 @@ type Stroke
 
 defaultStroke :: Stroke
 defaultStroke =
-  { color: RGB 0 0 0
+  { color: "transparent"
   , opacity: 1.0
   , width: 1.0
   , dashOffset: 0.0

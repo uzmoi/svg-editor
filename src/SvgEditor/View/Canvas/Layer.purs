@@ -24,10 +24,10 @@ svgLayer { drawPath, fill, stroke } =
   HSE.path
     $ catMaybes
         [ Just $ HSA.d (drawPath # map toHalogenPathCommand)
-        , fillAttr _.color # map HSA.fill
+        , fillAttr _.color # map (HSA.Named >>> HSA.fill)
         , fillAttr _.opacity # map HSA.fillOpacity
         , fillAttr _.rule # map fillRule
-        , strokeAttr _.color # map HSA.stroke
+        , strokeAttr _.color # map (HSA.Named >>> HSA.stroke)
         , strokeAttr _.opacity # map strokeOpacity
         , strokeAttr _.width # map HSA.strokeWidth
         , strokeAttr _.dashOffset # map strokeDashOffset

@@ -28,9 +28,25 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
         [ HE.onClick \_ -> actions.deleteLayer ]
         [ HH.text "delete layer" ]
     , HH.div_
+        [ HH.text "fill-color"
+        , HH.input
+            [ HP.value fill.color
+            , HE.onValueInput \x ->
+                actions.editLayer _ { fill { color = x } }
+            ]
+        ]
+    , HH.div_
         [ HH.text "fill-opacity"
         , numberInput "layer-info.fill-opacity" fill.opacity \x ->
             actions.editLayer _ { fill { opacity = x } }
+        ]
+    , HH.div_
+        [ HH.text "stroke-color"
+        , HH.input
+            [ HP.value stroke.color
+            , HE.onValueInput \x ->
+                actions.editLayer _ { stroke { color = x } }
+            ]
         ]
     , HH.div_
         [ HH.text "stroke-opacity"
@@ -46,6 +62,14 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
         [ HH.text "dash-offset"
         , numberInput "layer-info.dash-offset" stroke.dashOffset \x ->
             actions.editLayer _ { stroke { dashOffset = x } }
+        ]
+    , HH.div_
+        [ HH.text "dash-array"
+        , HH.input
+            [ HP.value stroke.dashArray
+            , HE.onValueInput \x ->
+                actions.editLayer _ { stroke { dashArray = x } }
+            ]
         ]
     , HH.div_
         [ HH.text "miter-limit"

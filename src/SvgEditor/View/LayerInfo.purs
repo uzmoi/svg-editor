@@ -56,7 +56,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     , HH.div_
         [ HH.text "fill-opacity"
         , numberInput "layer-info.fill-opacity" fill.opacity \x ->
-            actions.editLayer _ { fill { opacity = x } }
+            actions.editLayer _ { fill { opacity = clamp 0.0 1.0 x } }
         ]
     , HH.div_
         [ HH.text "fill-rule"
@@ -74,7 +74,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     , HH.div_
         [ HH.text "stroke-opacity"
         , numberInput "layer-info.stroke-opacity" stroke.opacity \x ->
-            actions.editLayer _ { stroke { opacity = x } }
+            actions.editLayer _ { stroke { opacity = clamp 0.0 1.0 x } }
         ]
     , HH.div_
         [ HH.text "stroke-width"

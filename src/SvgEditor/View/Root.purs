@@ -91,7 +91,6 @@ appRoot =
                         { editLayer: EditSelectedLayer
                         , deleteLayer: DeleteLayer
                         , editCommand: EditCommand
-                        , noop: NOOP
                         }
                 )
           ]

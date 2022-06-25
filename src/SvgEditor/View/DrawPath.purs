@@ -3,19 +3,18 @@ module SvgEditor.View.DrawPath
   ) where
 
 import Prelude
-import Data.Number (fromString)
-import Data.Maybe (maybe)
 import Data.Tuple (Tuple(..))
 import Data.Array (mapWithIndex)
+import Effect.Aff (Aff)
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import SvgEditor.PathCommand (PathCommand, commandName, points)
+import SvgEditor.View.NumberInput (numberInput, Slot)
 
 drawPath ::
-  forall a b.
-  { editCommand :: Int -> PathCommand -> b, noop :: b } ->
-  Array PathCommand -> HH.HTML a b
+  forall a.
+  { editCommand :: Int -> PathCommand -> a } ->
+  Array PathCommand -> HH.ComponentHTML a Slot Aff
 drawPath actions pathCommands =
   HH.ul
     [ HP.class_ $ HH.ClassName "draw-path-commands" ]
@@ -24,21 +23,14 @@ drawPath actions pathCommands =
         HH.li_
           [ HH.text $ commandName pathCommand
           , HH.div_ $ points pathCommand
-              # map \(Tuple v updateV) -> point i v updateV
+              # mapWithIndex \j (Tuple v updateV) ->
+                  let
+                    key = "draw-path." <> show i <> "." <> show j
+
+                    handleEditVec f = actions.editCommand i <<< updateV <<< f
+                  in
+                    HH.div_
+                      [ numberInput (key <> ".x") v.x $ handleEditVec \x -> v { x = x }
+                      , numberInput (key <> ".y") v.y $ handleEditVec \y -> v { y = y }
+                      ]
           ]
-  where
-  point i v updateV =
-    HH.div_
-      [ HH.input
-          [ HP.value $ show v.x
-          , HE.onValueInput $ handleEditVec \x -> v { x = x }
-          , HP.class_ $ HH.ClassName "number-input"
-          ]
-      , HH.input
-          [ HP.value $ show v.y
-          , HE.onValueInput $ handleEditVec \y -> v { y = y }
-          , HP.class_ $ HH.ClassName "number-input"
-          ]
-      ]
-    where
-    handleEditVec f = fromString >>> maybe actions.noop (actions.editCommand i <<< updateV <<< f)

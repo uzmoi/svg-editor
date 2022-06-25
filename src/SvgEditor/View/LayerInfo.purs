@@ -1,23 +1,22 @@
 module SvgEditor.View.LayerInfo where
 
 import Prelude
-import Data.Maybe (maybe)
-import Data.Number (fromString)
+import Effect.Aff (Aff)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.DrawPath (drawPath)
+import SvgEditor.View.NumberInput (numberInput, Slot)
 
 layerInfo ::
-  forall a b.
-  { editLayer :: (Layer -> Layer) -> b
-  , deleteLayer :: b
-  , editCommand :: Int -> PathCommand -> b
-  , noop :: b
+  forall a.
+  { editLayer :: (Layer -> Layer) -> a
+  , deleteLayer :: a
+  , editCommand :: Int -> PathCommand -> a
   } ->
-  Layer -> HH.HTML a b
+  Layer -> HH.ComponentHTML a Slot Aff
 layerInfo actions { name, drawPath: drawPath', stroke } =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]
@@ -29,14 +28,9 @@ layerInfo actions { name, drawPath: drawPath', stroke } =
         [ HE.onClick \_ -> actions.deleteLayer ]
         [ HH.text "delete layer" ]
     , HH.div_
-        [ HH.text "stroke width"
-        , HH.input
-            [ HP.value $ show stroke.width
-            , HE.onValueInput $ fromString
-                >>> maybe actions.noop \width ->
-                    actions.editLayer _ { stroke { width = width } }
-            , HP.class_ $ HH.ClassName "number-input"
-            ]
+        [ HH.text "stroke-width"
+        , numberInput "layer-info.stroke-width" stroke.width \width ->
+            actions.editLayer _ { stroke { width = width } }
         ]
-    , drawPath { editCommand: actions.editCommand, noop: actions.noop } drawPath'
+    , drawPath { editCommand: actions.editCommand } drawPath'
     ]

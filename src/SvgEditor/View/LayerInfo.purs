@@ -1,14 +1,32 @@
 module SvgEditor.View.LayerInfo where
 
 import Prelude
+import Data.Maybe (fromJust)
+import Data.Tuple (Tuple(..), fst, snd)
+import Data.Array (find)
+import Partial.Unsafe (unsafePartial)
 import Effect.Aff (Aff)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import SvgEditor.Layer (Layer)
+import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..), printStrokeLineCap)
+import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..), printStrokeLineJoin)
+import SvgEditor.Layer (Layer, FillRule(..))
 import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.DrawPath (drawPath)
 import SvgEditor.View.NumberInput (numberInput, Slot)
+
+select :: forall a b x. Array x -> (x -> String) -> (x -> b) -> HH.HTML a b
+select xs print f =
+  let
+    ys = xs # map \x -> Tuple (print x) x
+  in
+    HH.select
+      [ HE.onValueInput \x ->
+          f $ snd $ unsafePartial fromJust $ ys # find (fst >>> (==) x)
+      ]
+      $ ys
+      # map \x -> let name = fst x in HH.option [ HP.value name ] [ HH.text name ]
 
 layerInfo ::
   forall a.
@@ -41,6 +59,11 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
             actions.editLayer _ { fill { opacity = x } }
         ]
     , HH.div_
+        [ HH.text "fill-rule"
+        , select [ NonZero, EvenOdd ] show \x ->
+            actions.editLayer _ { fill { rule = x } }
+        ]
+    , HH.div_
         [ HH.text "stroke-color"
         , HH.input
             [ HP.value stroke.color
@@ -70,6 +93,20 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
             , HE.onValueInput \x ->
                 actions.editLayer _ { stroke { dashArray = x } }
             ]
+        ]
+    , HH.div_
+        [ HH.text "line-cap"
+        , select
+            [ LineCapButt, LineCapSquare, LineCapRound ]
+            printStrokeLineCap \x ->
+            actions.editLayer _ { stroke { lineCap = x } }
+        ]
+    , HH.div_
+        [ HH.text "line-join"
+        , select
+            [ LineJoinMiter, LineJoinMiterClip, LineJoinArcs, LineJoinBevel, LineJoinRound ]
+            printStrokeLineJoin \x ->
+            actions.editLayer _ { stroke { lineJoin = x } }
         ]
     , HH.div_
         [ HH.text "miter-limit"

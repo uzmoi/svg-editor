@@ -4,7 +4,7 @@ module SvgEditor.View.Canvas
   ) where
 
 import Prelude
-import Data.Array (filter, find, snoc, concat)
+import Data.Array (filter, find, snoc)
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
@@ -36,25 +36,27 @@ canvasContainerRef = H.RefLabel "canvasContainer"
 
 svgCanvas ::
   forall a b.
-  (MouseEvent -> b) ->
-  (Int -> (Vec2 -> PathCommand) -> b) ->
-  (Int -> b) ->
+  { drag :: MouseEvent -> b
+  , dragStart :: Int -> (Vec2 -> PathCommand) -> b
+  , addCommand :: Int -> b
+  } ->
   Canvas ->
   Array Layer ->
   Int ->
   HH.HTML a b
-svgCanvas f g h canvas layers selectedLayer =
+svgCanvas actions canvas layers selectedLayer =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
-    , HE.onMouseMove f
+    , HE.onMouseMove actions.drag
     ]
     [ HSE.svg (canvasProps canvas) $ showLayers # map svgLayer
     , case showLayers # find (_.id >>> (==) selectedLayer) of
         (Just layer) ->
           HSE.svg
             (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-            $ concat [ overlayLines h layer.drawPath, overlayPoints g layer.drawPath ]
+            $ overlayLines actions.addCommand layer.drawPath
+            <> overlayPoints actions.dragStart layer.drawPath
         Nothing -> HH.div_ []
     ]
   where

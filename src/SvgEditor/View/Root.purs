@@ -70,7 +70,15 @@ appRoot =
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div
           [ HP.class_ $ HH.ClassName "center-panel" ]
-          [ svgCanvas Drag DragStart AddCommand canvas layers selectedLayer ]
+          [ svgCanvas
+              { drag: Drag
+              , dragStart: DragStart
+              , addCommand: AddCommand
+              }
+              canvas
+              layers
+              selectedLayer
+          ]
       , HH.div
           [ HP.class_ $ HH.ClassName "right-panel" ]
           [ HH.p_

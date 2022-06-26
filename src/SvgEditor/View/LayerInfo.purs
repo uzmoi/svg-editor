@@ -16,6 +16,7 @@ import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.DrawPath (drawPath)
 import SvgEditor.View.NumberInput (numberInput, Slot)
 
+-- TODO: value
 select :: forall a b x. Array x -> (x -> String) -> (x -> b) -> HH.HTML a b
 select xs print f =
   let
@@ -45,73 +46,93 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     , HH.button
         [ HE.onClick \_ -> actions.deleteLayer ]
         [ HH.text "delete layer" ]
-    , HH.div_
-        [ HH.text "fill-color"
-        , HH.input
-            [ HP.value fill.color
-            , HE.onValueInput \x ->
-                actions.editLayer _ { fill { color = x } }
-            ]
-        ]
-    , HH.div_
-        [ HH.text "fill-opacity"
-        , numberInput "layer-info.fill-opacity" fill.opacity \x ->
-            actions.editLayer _ { fill { opacity = clamp 0.0 1.0 x } }
-        ]
-    , HH.div_
-        [ HH.text "fill-rule"
-        , select [ NonZero, EvenOdd ] show \x ->
-            actions.editLayer _ { fill { rule = x } }
-        ]
-    , HH.div_
-        [ HH.text "stroke-color"
-        , HH.input
-            [ HP.value stroke.color
-            , HE.onValueInput \x ->
-                actions.editLayer _ { stroke { color = x } }
-            ]
-        ]
-    , HH.div_
-        [ HH.text "stroke-opacity"
-        , numberInput "layer-info.stroke-opacity" stroke.opacity \x ->
-            actions.editLayer _ { stroke { opacity = clamp 0.0 1.0 x } }
-        ]
-    , HH.div_
-        [ HH.text "stroke-width"
-        , numberInput "layer-info.stroke-width" stroke.width \x ->
-            actions.editLayer _ { stroke { width = x } }
-        ]
-    , HH.div_
-        [ HH.text "dash-offset"
-        , numberInput "layer-info.dash-offset" stroke.dashOffset \x ->
-            actions.editLayer _ { stroke { dashOffset = x } }
-        ]
-    , HH.div_
-        [ HH.text "dash-array"
-        , HH.input
-            [ HP.value stroke.dashArray
-            , HE.onValueInput \x ->
-                actions.editLayer _ { stroke { dashArray = x } }
-            ]
-        ]
-    , HH.div_
-        [ HH.text "line-cap"
-        , select
-            [ LineCapButt, LineCapSquare, LineCapRound ]
-            printStrokeLineCap \x ->
-            actions.editLayer _ { stroke { lineCap = x } }
-        ]
-    , HH.div_
-        [ HH.text "line-join"
-        , select
-            [ LineJoinMiter, LineJoinMiterClip, LineJoinArcs, LineJoinBevel, LineJoinRound ]
-            printStrokeLineJoin \x ->
-            actions.editLayer _ { stroke { lineJoin = x } }
-        ]
-    , HH.div_
-        [ HH.text "miter-limit"
-        , numberInput "layer-info.miter-limit" stroke.miterLimit \x ->
-            actions.editLayer _ { stroke { miterLimit = x } }
-        ]
+    , stringInput'
+        { name: "fill-color"
+        , value: fill.color
+        , onChange: \x -> _ { fill { color = x } }
+        }
+    , numberInput'
+        { name: "fill-opacity"
+        , value: fill.opacity
+        , onChange: \x -> _ { fill { opacity = clamp 0.0 1.0 x } }
+        }
+    , selectInput'
+        { name: "fill-rule"
+        , value: fill.rule
+        , xs: [ NonZero, EvenOdd ]
+        , print: show
+        , onChange: \x -> _ { fill { rule = x } }
+        }
+    , stringInput'
+        { name: "stroke-color"
+        , value: stroke.color
+        , onChange: \x -> _ { stroke { color = x } }
+        }
+    , numberInput'
+        { name: "stroke-opacity"
+        , value: stroke.opacity
+        , onChange: \x -> _ { stroke { opacity = clamp 0.0 1.0 x } }
+        }
+    , numberInput'
+        { name: "stroke-width"
+        , value: stroke.width
+        , onChange: \x -> _ { stroke { width = x } }
+        }
+    , numberInput'
+        { name: "dash-offset"
+        , value: stroke.dashOffset
+        , onChange: \x -> _ { stroke { dashOffset = x } }
+        }
+    , stringInput'
+        { name: "dash-array"
+        , value: stroke.dashArray
+        , onChange: \x -> _ { stroke { dashArray = x } }
+        }
+    , selectInput'
+        { name: "line-cap"
+        , value: stroke.lineCap
+        , xs: [ LineCapButt, LineCapSquare, LineCapRound ]
+        , print: printStrokeLineCap
+        , onChange: \x -> _ { stroke { lineCap = x } }
+        }
+    , selectInput'
+        { name: "line-join"
+        , value: stroke.lineJoin
+        , xs: [ LineJoinMiter, LineJoinMiterClip, LineJoinArcs, LineJoinBevel, LineJoinRound ]
+        , print: printStrokeLineJoin
+        , onChange: \x -> _ { stroke { lineJoin = x } }
+        }
+    , numberInput'
+        { name: "miter-limit"
+        , value: stroke.miterLimit
+        , onChange: \x -> _ { stroke { miterLimit = x } }
+        }
     , drawPath { editCommand: actions.editCommand } drawPath'
     ]
+  where
+  stringInput' { name, value, onChange } =
+    input' name
+      $ HH.input
+          [ HP.value value
+          , HE.onValueInput (actions.editLayer <<< onChange)
+          ]
+
+  numberInput' { name, value, onChange } =
+    input' name
+      $ numberInput ("layer-info" <> name) value (actions.editLayer <<< onChange)
+
+  selectInput' ::
+    forall b x.
+    { name :: String
+    , value :: x
+    , xs :: Array x
+    , print :: x -> String
+    , onChange :: x -> Layer -> Layer
+    } ->
+    HH.HTML b a
+  selectInput' { name, value: _, xs, print, onChange } =
+    input' name
+      $ select xs print (actions.editLayer <<< onChange)
+
+  input' :: forall a b. String -> HH.HTML a b -> HH.HTML a b
+  input' name input = HH.div_ [ HH.text name, input ]

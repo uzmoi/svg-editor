@@ -10,6 +10,7 @@
   , "integers"
   , "maybe"
   , "numbers"
+  , "partial"
   , "prelude"
   , "random"
   , "transformers"

@@ -4,7 +4,7 @@ import Prelude
 import Data.Tuple (Tuple(..))
 import Data.Array (filter, find, insertAt, updateAt, snoc)
 import Data.Maybe (Maybe(..), maybe)
-import Data.Int (toNumber)
+import Data.Int (toNumber, floor)
 import Data.Number.Format (toStringWith, fixed)
 import Halogen as H
 import Halogen.HTML as HH
@@ -22,7 +22,8 @@ import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
-  = AddLayer
+  = Scale Number
+  | AddLayer
   | DeleteLayer
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
@@ -59,13 +60,14 @@ appRoot =
             , right: 100.0
             }
         }
+    , scale: 10
     , layers: []
     , selectedLayer: -1
     , cursorPos: { x: 0.0, y: 0.0 }
     , dragging: Nothing
     }
 
-  render { canvas, layers, selectedLayer, cursorPos } =
+  render { canvas, scale, layers, selectedLayer, cursorPos } =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div
@@ -74,7 +76,9 @@ appRoot =
               { drag: Drag
               , dragStart: DragStart
               , addCommand: AddCommand
+              , scale: Scale
               }
+              (toNumber scale / 10.0)
               canvas
               layers
               selectedLayer
@@ -105,6 +109,13 @@ appRoot =
       ]
 
   handleAction = case _ of
+    Scale deltaY -> do
+      let
+        scale = floor $ deltaY / 100.0
+      H.modify_ \state ->
+        state
+          { scale = clamp 1 100 $ state.scale + scale
+          }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
       H.modify_ \state ->

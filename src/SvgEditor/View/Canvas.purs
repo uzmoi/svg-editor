@@ -16,6 +16,7 @@ import Halogen.Svg.Attributes (class_)
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Indexed as I
 import Web.UIEvent.MouseEvent (MouseEvent)
+import Web.UIEvent.WheelEvent (deltaY)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand, Vec2)
@@ -39,16 +40,20 @@ svgCanvas ::
   { drag :: MouseEvent -> b
   , dragStart :: Int -> (Vec2 -> PathCommand) -> b
   , addCommand :: Int -> b
+  , scale :: Number -> b
   } ->
+  Number ->
   Canvas ->
   Array Layer ->
   Int ->
   HH.HTML a b
-svgCanvas actions canvas layers selectedLayer =
+svgCanvas actions scale canvas layers selectedLayer =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
+    , HP.style $ "transform:scale(" <> show scale <> ")"
     , HE.onMouseMove actions.drag
+    , HE.onWheel \e -> actions.scale $ e # deltaY
     ]
     [ HSE.svg (canvasProps canvas) $ showLayers # map svgLayer
     , case showLayers # find (_.id >>> (==) selectedLayer) of

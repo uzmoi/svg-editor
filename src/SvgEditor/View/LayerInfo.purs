@@ -16,18 +16,21 @@ import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.DrawPath (drawPath)
 import SvgEditor.View.NumberInput (numberInput, Slot)
 
--- TODO: value
-select :: forall a b x. Array x -> (x -> String) -> (x -> b) -> HH.HTML a b
-select xs print f =
+select :: forall a b x. Eq x => String -> Array x -> (x -> String) -> x -> (x -> b) -> HH.HTML a b
+select id xs print value f =
   let
     ys = xs # map \x -> Tuple (print x) x
   in
     HH.select
-      [ HE.onValueInput \x ->
+      [ HP.id $ id
+      , HE.onValueInput \x ->
           f $ snd $ unsafePartial fromJust $ ys # find (fst >>> (==) x)
       ]
       $ ys
-      # map \x -> let name = fst x in HH.option [ HP.value name ] [ HH.text name ]
+      # map \(Tuple name x) ->
+          HH.option
+            [ HP.value name, HP.selected $ value == x ]
+            [ HH.text name ]
 
 layerInfo ::
   forall a.
@@ -98,7 +101,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     , selectInput'
         { name: "line-join"
         , value: stroke.lineJoin
-        , xs: [ LineJoinMiter, LineJoinMiterClip, LineJoinArcs, LineJoinBevel, LineJoinRound ]
+        , xs: [ LineJoinArcs, LineJoinBevel, LineJoinMiter, LineJoinMiterClip, LineJoinRound ]
         , print: printStrokeLineJoin
         , onChange: \x -> _ { stroke { lineJoin = x } }
         }
@@ -113,16 +116,18 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
   stringInput' { name, value, onChange } =
     input' name
       $ HH.input
-          [ HP.value value
+          [ HP.id $ "layer-info." <> name
+          , HP.value value
           , HE.onValueInput (actions.editLayer <<< onChange)
           ]
 
   numberInput' { name, value, onChange } =
     input' name
-      $ numberInput ("layer-info" <> name) value (actions.editLayer <<< onChange)
+      $ numberInput ("layer-info." <> name) value (actions.editLayer <<< onChange)
 
   selectInput' ::
     forall b x.
+    Eq x =>
     { name :: String
     , value :: x
     , xs :: Array x
@@ -130,9 +135,13 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     , onChange :: x -> Layer -> Layer
     } ->
     HH.HTML b a
-  selectInput' { name, value: _, xs, print, onChange } =
+  selectInput' { name, value, xs, print, onChange } =
     input' name
-      $ select xs print (actions.editLayer <<< onChange)
+      $ select ("layer-info." <> name) xs print value (actions.editLayer <<< onChange)
 
   input' :: forall a b. String -> HH.HTML a b -> HH.HTML a b
-  input' name input = HH.div_ [ HH.text name, input ]
+  input' name input =
+    HH.div_
+      [ HH.label [ HP.for $ "layer-info." <> name ] [ HH.text name ]
+      , input
+      ]

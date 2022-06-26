@@ -16,18 +16,21 @@ import Type.Proxy (Proxy(..))
 type Slot
   = ( numberInput :: forall query. H.Slot query Number String )
 
+type Param
+  = { key :: String, x :: Number }
+
 data Action
   = Focus
   | Blur
   | Input String
-  | Receive Number
+  | Receive Param
 
 _numberInput = Proxy :: Proxy "numberInput"
 
 numberInput :: forall a. String -> Number -> (Number -> a) -> HH.ComponentHTML a Slot Aff
-numberInput key = HH.slot _numberInput key numberInputComponent
+numberInput key x = HH.slot _numberInput key numberInputComponent { key, x }
 
-numberInputComponent :: forall query. H.Component query Number Number Aff
+numberInputComponent :: forall query. H.Component query Param Number Aff
 numberInputComponent =
   H.mkComponent
     { initialState
@@ -40,11 +43,12 @@ numberInputComponent =
               }
     }
   where
-  initialState x = { value: show x, inputValue: x, focus: false }
+  initialState { key, x } = { id: key, value: show x, inputValue: x, focus: false }
 
-  render { value } =
+  render { id, value } =
     HH.input
-      [ HP.value value
+      [ HP.id id
+      , HP.value value
       , HE.onValueInput Input
       , HE.onFocus \_ -> Focus
       , HE.onBlur \_ -> Blur
@@ -57,9 +61,9 @@ numberInputComponent =
     Input value -> do
       H.modify_ _ { value = value }
       fromString value # maybe (pure unit) H.raise
-    Receive x ->
+    Receive { key, x } ->
       H.modify_ \state@{ focus } ->
         if focus then
-          state { inputValue = x }
+          state { id = key, inputValue = x }
         else
-          state { inputValue = x, value = show x }
+          state { id = key, inputValue = x, value = show x }

@@ -33,7 +33,7 @@ type Fill
 
 defaultFill :: Fill
 defaultFill =
-  { color: "transparent"
+  { color: "black"
   , opacity: 1.0
   , rule: NonZero
   }
@@ -66,7 +66,7 @@ type Stroke
 
 defaultStroke :: Stroke
 defaultStroke =
-  { color: "transparent"
+  { color: "black"
   , opacity: 1.0
   , width: 1.0
   , dashOffset: 0.0

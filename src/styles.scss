@@ -79,6 +79,9 @@
     cursor: pointer;
     display: inline-block;
   }
+  div.hidden-layer p {
+    color: gray;
+  }
 }
 
 .layer-info {

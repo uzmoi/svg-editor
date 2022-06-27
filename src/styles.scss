@@ -77,8 +77,7 @@
 }
 
 .layer-list {
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
+  user-select: none;
 }
 
 .layer-list > button {
@@ -92,16 +91,20 @@
   &:hover {
     background-color: var(--accent);
   }
-  div p {
-    padding: 0.4em;
-    cursor: pointer;
-    display: inline-block;
-  }
-  .hidden-layer p {
-    color: gray;
-  }
-  .selected {
-    background-color: var(--accent);
+  div {
+    padding: 0.2em;
+    p {
+      min-width: 1em;
+      padding: 0.3em;
+      cursor: pointer;
+      display: inline-block;
+    }
+    &.hidden-layer {
+      color: gray;
+    }
+    &.selected {
+      background-color: var(--accent);
+    }
   }
 }
 

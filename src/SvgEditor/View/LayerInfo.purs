@@ -23,6 +23,7 @@ select id xs print value f =
   in
     HH.select
       [ HP.id $ id
+      , HP.class_ $ HH.ClassName "input"
       , HE.onValueInput \x ->
           f $ snd $ unsafePartial fromJust $ ys # find (fst >>> (==) x)
       ]
@@ -119,6 +120,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
           [ HP.id $ "layer-info." <> name
           , HP.value value
           , HE.onValueInput (actions.editLayer <<< onChange)
+          , HP.class_ $ HH.ClassName "input"
           ]
 
   numberInput' { name, value, onChange } =
@@ -141,7 +143,8 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
 
   input' :: forall a b. String -> HH.HTML a b -> HH.HTML a b
   input' name input =
-    HH.div_
-      [ HH.label [ HP.for $ "layer-info." <> name ] [ HH.text name ]
-      , input
+    HH.dl
+      [ HP.class_ $ HH.ClassName "style-input" ]
+      [ HH.dt_ [ HH.label [ HP.for $ "layer-info." <> name ] [ HH.text name ] ]
+      , HH.dd_ [ input ]
       ]

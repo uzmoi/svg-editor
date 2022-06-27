@@ -52,7 +52,7 @@ numberInputComponent =
       , HE.onValueInput Input
       , HE.onFocus \_ -> Focus
       , HE.onBlur \_ -> Blur
-      , HP.class_ $ HH.ClassName "number-input"
+      , HP.class_ $ HH.ClassName "input"
       ]
 
   handleAction = case _ of

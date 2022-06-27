@@ -102,6 +102,17 @@
 
 .layer-info {
   padding: 1em;
+  .style-input {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.2em 0;
+    > dt {
+      flex-shrink: 0;
+    }
+    > dd {
+      margin-left: 0;
+    }
+  }
 }
 
 .draw-path-commands li > div > div {
@@ -109,7 +120,7 @@
   padding-left: 1em;
 }
 
-.number-input {
+.input {
   margin: 0.1em;
   width: 6em;
   border: 0;

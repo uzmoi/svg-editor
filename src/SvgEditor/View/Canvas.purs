@@ -48,8 +48,8 @@ svgCanvas actions scale canvas layers selectedLayer =
     , HP.class_ $ HH.ClassName "canvas-container"
     , HP.style $ "transform:scale(" <> show scale <> ")"
     ]
-    [ HSE.svg (canvasProps canvas) $ showLayers # map svgLayer
-    , case showLayers # find (_.id >>> (==) selectedLayer) of
+    [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
+    , case layers # find (_.id >>> (==) selectedLayer) of
         (Just layer) ->
           HSE.svg
             (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
@@ -59,5 +59,3 @@ svgCanvas actions scale canvas layers selectedLayer =
     ]
   where
   size = 1.0 / scale
-
-  showLayers = layers # filter _.show

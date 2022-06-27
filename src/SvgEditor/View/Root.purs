@@ -84,15 +84,21 @@ appRoot =
               canvas
               layers
               selectedLayer
+          , HH.div [ HP.class_ $ HH.ClassName "center-panel-footer" ]
+              [ HH.p_
+                  [ HH.text $ show $ scale * 10
+                  , HH.text "%"
+                  ]
+              , HH.p_
+                  [ HH.text $ toFixed cursorPos.x
+                  , HH.text ", "
+                  , HH.text $ toFixed cursorPos.y
+                  ]
+              ]
           ]
       , HH.div
           [ HP.class_ $ HH.ClassName "right-panel" ]
-          [ HH.p_
-              [ HH.text $ toFixed cursorPos.x
-              , HH.text ", "
-              , HH.text $ toFixed cursorPos.y
-              ]
-          , layerList
+          [ layerList
               { addLayer: AddLayer
               , selectLayer: SelectLayer
               , editLayer: EditLayer

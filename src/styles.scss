@@ -29,6 +29,7 @@
 
 .center-panel {
   flex-grow: 1;
+  position: relative;
 }
 
 .canvas-container {
@@ -45,6 +46,21 @@
   top: 0;
   left: 0;
   overflow: visible;
+}
+
+.center-panel-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-primary);
+  p {
+    display: inline-block;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+  }
 }
 
 .right-panel {

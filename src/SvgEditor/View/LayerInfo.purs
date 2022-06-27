@@ -111,6 +111,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
         , value: stroke.miterLimit
         , onChange: \x -> _ { stroke { miterLimit = x } }
         }
+    , HH.hr_
     , drawPath { editCommand: actions.editCommand } drawPath'
     ]
   where

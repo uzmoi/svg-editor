@@ -110,6 +110,20 @@
 
 .layer-info {
   padding: 1em;
+  .layer-name-input {
+    padding: 0.3em;
+    width: 100%;
+    background-color: var(--bg-primary);
+    color: var(--text);
+    font-size: 1.1em;
+    outline: none;
+    border: 0;
+    border-bottom: 2px solid var(--text);
+    transition: 0.2s;
+    &:focus {
+      border-bottom-color: var(--accent);
+    }
+  }
   .style-input {
     display: flex;
     justify-content: space-between;

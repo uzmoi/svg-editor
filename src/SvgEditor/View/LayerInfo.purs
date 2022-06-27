@@ -46,6 +46,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     [ HH.input
         [ HP.value name
         , HE.onValueInput \value -> actions.editLayer _ { name = value }
+        , HP.class_ $ HH.ClassName "layer-name-input"
         ]
     , HH.button
         [ HE.onClick \_ -> actions.deleteLayer ]

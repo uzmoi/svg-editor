@@ -16,12 +16,16 @@ layerList ::
   } ->
   Array Layer -> Int -> HH.HTML a b
 layerList actions layers selectedLayer =
-  HH.div_
+  HH.div
+    [ HP.class_ $ HH.ClassName "layer-list" ]
     [ HH.ul_ $ layers
         # map \{ id, name, show } ->
             HH.li_
               [ HH.div
-                  [ HP.class_ $ HH.ClassName if id == selectedLayer then "selected" else "" ]
+                  [ HP.classes
+                      $ (if id == selectedLayer then [ HH.ClassName "selected" ] else [])
+                      <> (if show then [] else [ HH.ClassName "hidden-layer" ])
+                  ]
                   [ HH.p
                       [ HE.onClick \_ -> actions.selectLayer id ]
                       [ HH.text name ]

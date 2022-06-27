@@ -4,14 +4,16 @@ import Prelude
 import Data.Tuple (Tuple(..))
 import Data.Array (filter, find, insertAt, updateAt, snoc)
 import Data.Maybe (Maybe(..), maybe)
-import Data.Int (toNumber)
+import Data.Int (toNumber, floor)
 import Data.Number.Format (toStringWith, fixed)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
+import Web.UIEvent.WheelEvent (deltaY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
@@ -21,12 +23,14 @@ import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
-  = AddLayer
+  = Scale Number
+  | AddLayer
   | DeleteLayer
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
   | EditSelectedLayer (Layer -> Layer)
-  | AddPoint Int
+  | AddCommand Int
+  | EditCommand Int PathCommand
   | DragStart Int (Vec2 -> PathCommand)
   | Drag MouseEvent
   | DragEnd
@@ -57,38 +61,69 @@ appRoot =
             , right: 100.0
             }
         }
+    , scale: 10
     , layers: []
     , selectedLayer: -1
     , cursorPos: { x: 0.0, y: 0.0 }
     , dragging: Nothing
     }
 
-  render { canvas, layers, selectedLayer, cursorPos } =
-    HH.div [ HE.onMouseUp \_ -> DragEnd ]
-      [ svgCanvas Drag DragStart AddPoint canvas layers selectedLayer
-      , HH.p_
-          [ HH.text $ toFixed cursorPos.x
-          , HH.text ", "
-          , HH.text $ toFixed cursorPos.y
+  render { canvas, scale, layers, selectedLayer, cursorPos } =
+    HH.div
+      [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
+      [ HH.div
+          [ HP.class_ $ HH.ClassName "center-panel"
+          , HE.onWheel \e -> Scale $ e # deltaY
+          , HE.onMouseMove Drag
           ]
-      , layerList
-          { addLayer: AddLayer
-          , selectLayer: SelectLayer
-          , editLayer: EditLayer
-          }
-          layers
-          selectedLayer
-      , layers # find (_.id >>> (==) selectedLayer)
-          # ( maybe (HH.div_ [])
-                $ layerInfo
-                    { editLayer: EditSelectedLayer
-                    , deleteLayer: DeleteLayer
-                    , noop: NOOP
-                    }
-            )
+          [ svgCanvas
+              { dragStart: DragStart
+              , addCommand: AddCommand
+              }
+              (toNumber scale / 10.0)
+              canvas
+              layers
+              selectedLayer
+          , HH.div [ HP.class_ $ HH.ClassName "center-panel-footer" ]
+              [ HH.p_
+                  [ HH.text $ show $ scale * 10
+                  , HH.text "%"
+                  ]
+              , HH.p_
+                  [ HH.text $ toFixed cursorPos.x
+                  , HH.text ", "
+                  , HH.text $ toFixed cursorPos.y
+                  ]
+              ]
+          ]
+      , HH.div
+          [ HP.class_ $ HH.ClassName "right-panel" ]
+          [ layerList
+              { addLayer: AddLayer
+              , selectLayer: SelectLayer
+              , editLayer: EditLayer
+              }
+              layers
+              selectedLayer
+          , layers # find (_.id >>> (==) selectedLayer)
+              # ( maybe (HH.div_ [])
+                    $ layerInfo
+                        { editLayer: EditSelectedLayer
+                        , deleteLayer: DeleteLayer
+                        , editCommand: EditCommand
+                        }
+                )
+          ]
       ]
 
   handleAction = case _ of
+    Scale deltaY -> do
+      let
+        scale = floor $ deltaY / 100.0
+      H.modify_ \state ->
+        state
+          { scale = clamp 1 100 $ state.scale + scale
+          }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
       H.modify_ \state ->
@@ -119,7 +154,7 @@ appRoot =
     EditSelectedLayer f -> do
       { selectedLayer } <- H.get
       handleAction $ EditLayer selectedLayer f
-    AddPoint i -> do
+    AddCommand i -> do
       { layers, selectedLayer, cursorPos } <- H.get
       let
         point = Line Abs
@@ -128,6 +163,13 @@ appRoot =
             layer <- layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # insertAt i (point cursorPos)
             Just _ { drawPath = drawPath }
+    EditCommand i j -> do
+      { layers, selectedLayer } <- H.get
+      handleAction
+        $ maybe NOOP EditSelectedLayer do
+            layer <- layers # find (_.id >>> (==) selectedLayer)
+            drawPath <- layer.drawPath # updateAt i j
+            Just _ { drawPath = drawPath }
     DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
     DragEnd -> H.modify_ _ { dragging = Nothing }
     Drag e ->
@@ -135,7 +177,7 @@ appRoot =
         >>= case _ of
             Just canvasContainerEl -> do
               canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
-              { canvas: { viewBox }, layers, selectedLayer, dragging } <- H.get
+              { canvas: { viewBox }, dragging } <- H.get
               let
                 offsetX = (e # clientX # toNumber) - canvasContainerRect.left
 
@@ -146,11 +188,6 @@ appRoot =
                   , y: offsetY * (viewBox.bottom - viewBox.top) / canvasContainerRect.height
                   }
               H.modify_ _ { cursorPos = cursorPos }
-              handleAction
-                $ maybe NOOP EditSelectedLayer do
-                    Tuple i j <- dragging
-                    layer <- layers # find (_.id >>> (==) selectedLayer)
-                    drawPath <- layer.drawPath # updateAt i (j cursorPos)
-                    Just _ { drawPath = drawPath }
+              handleAction $ dragging # maybe NOOP \(Tuple i j) -> EditCommand i $ j cursorPos
             Nothing -> pure unit
     NOOP -> pure unit

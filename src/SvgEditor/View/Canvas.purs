@@ -4,18 +4,16 @@ module SvgEditor.View.Canvas
   ) where
 
 import Prelude
-import Data.Array (filter, find, snoc, concat)
+import Data.Array (filter, find, snoc)
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Properties (IProp)
 import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes (class_)
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Indexed as I
-import Web.UIEvent.MouseEvent (MouseEvent)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand, Vec2)
@@ -36,26 +34,28 @@ canvasContainerRef = H.RefLabel "canvasContainer"
 
 svgCanvas ::
   forall a b.
-  (MouseEvent -> b) ->
-  (Int -> (Vec2 -> PathCommand) -> b) ->
-  (Int -> b) ->
+  { dragStart :: Int -> (Vec2 -> PathCommand) -> b
+  , addCommand :: Int -> b
+  } ->
+  Number ->
   Canvas ->
   Array Layer ->
   Int ->
   HH.HTML a b
-svgCanvas f g h canvas layers selectedLayer =
+svgCanvas actions scale canvas layers selectedLayer =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
-    , HE.onMouseMove f
+    , HP.style $ "transform:scale(" <> show scale <> ")"
     ]
-    [ HSE.svg (canvasProps canvas) $ showLayers # map svgLayer
-    , case showLayers # find (_.id >>> (==) selectedLayer) of
+    [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
+    , case layers # find (_.id >>> (==) selectedLayer) of
         (Just layer) ->
           HSE.svg
             (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-            $ concat [ overlayLines h layer.drawPath, overlayPoints g layer.drawPath ]
+            $ overlayLines actions.addCommand size layer.drawPath
+            <> overlayPoints actions.dragStart size layer.drawPath
         Nothing -> HH.div_ []
     ]
   where
-  showLayers = layers # filter _.show
+  size = 1.0 / scale

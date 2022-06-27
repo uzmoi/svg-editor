@@ -8,20 +8,16 @@ body {
   margin: 0;
 }
 
-#app {
-  max-width: 40em;
+p {
+  margin: 0;
 }
 
-.canvas-container {
-  position: relative;
+ul, ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.canvas-container .overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.selected {
-  background-color: #ddd;
+button {
+  cursor: pointer;
 }

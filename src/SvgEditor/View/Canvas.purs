@@ -14,7 +14,6 @@ import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes (class_)
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Indexed as I
-import Web.UIEvent.MouseEvent (MouseEvent)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand, Vec2)
@@ -54,9 +53,11 @@ svgCanvas actions scale canvas layers selectedLayer =
         (Just layer) ->
           HSE.svg
             (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-            $ overlayLines actions.addCommand layer.drawPath
-            <> overlayPoints actions.dragStart layer.drawPath
+            $ overlayLines actions.addCommand size layer.drawPath
+            <> overlayPoints actions.dragStart size layer.drawPath
         Nothing -> HH.div_ []
     ]
   where
+  size = 1.0 / scale
+
   showLayers = layers # filter _.show

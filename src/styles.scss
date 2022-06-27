@@ -3,6 +3,7 @@
   #app {
     --bg-primary: #eee;
     --bg-secondary: #ddd;
+    --accent: #88d;
     --text: #333;
   }
 }
@@ -11,6 +12,7 @@
   #app {
     --bg-primary: #333;
     --bg-secondary: #222;
+    --accent: #448;
     --text: #eee;
   }
 }
@@ -34,7 +36,7 @@
 
 .canvas-container {
   position: relative;
-  background-color: #333;
+  background-color: var(--bg-primary);
 }
 
 .canvas-container svg {
@@ -88,15 +90,18 @@
 
 .layer-list ul li {
   &:hover {
-    background-color: var(--bg-secondary);
+    background-color: var(--accent);
   }
   div p {
     padding: 0.4em;
     cursor: pointer;
     display: inline-block;
   }
-  div.hidden-layer p {
+  .hidden-layer p {
     color: gray;
+  }
+  .selected {
+    background-color: var(--accent);
   }
 }
 
@@ -127,8 +132,5 @@
   border-radius: 0.1em;
   background-color: var(--bg-secondary);
   color: var(--text);
-}
-
-.selected {
-  background-color: var(--bg-secondary);
+  outline-color: var(--accent);
 }

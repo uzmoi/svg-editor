@@ -13,6 +13,7 @@ import Halogen.HTML.Properties as HP
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
+import Web.UIEvent.WheelEvent (deltaY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
@@ -71,12 +72,13 @@ appRoot =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div
-          [ HP.class_ $ HH.ClassName "center-panel" ]
+          [ HP.class_ $ HH.ClassName "center-panel"
+          , HE.onWheel \e -> Scale $ e # deltaY
+          , HE.onMouseMove Drag
+          ]
           [ svgCanvas
-              { drag: Drag
-              , dragStart: DragStart
+              { dragStart: DragStart
               , addCommand: AddCommand
-              , scale: Scale
               }
               (toNumber scale / 10.0)
               canvas

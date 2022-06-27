@@ -8,7 +8,6 @@ import Data.Array (filter, find, snoc)
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Properties (IProp)
 import Halogen.Svg.Elements as HSE
@@ -16,7 +15,6 @@ import Halogen.Svg.Attributes (class_)
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Indexed as I
 import Web.UIEvent.MouseEvent (MouseEvent)
-import Web.UIEvent.WheelEvent (deltaY)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand, Vec2)
@@ -37,10 +35,8 @@ canvasContainerRef = H.RefLabel "canvasContainer"
 
 svgCanvas ::
   forall a b.
-  { drag :: MouseEvent -> b
-  , dragStart :: Int -> (Vec2 -> PathCommand) -> b
+  { dragStart :: Int -> (Vec2 -> PathCommand) -> b
   , addCommand :: Int -> b
-  , scale :: Number -> b
   } ->
   Number ->
   Canvas ->
@@ -52,8 +48,6 @@ svgCanvas actions scale canvas layers selectedLayer =
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
     , HP.style $ "transform:scale(" <> show scale <> ")"
-    , HE.onMouseMove actions.drag
-    , HE.onWheel \e -> actions.scale $ e # deltaY
     ]
     [ HSE.svg (canvasProps canvas) $ showLayers # map svgLayer
     , case showLayers # find (_.id >>> (==) selectedLayer) of

@@ -17,7 +17,7 @@ import Web.UIEvent.WheelEvent (deltaY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
-import SvgEditor.PathCommand (PathCommand(..), Pos(..), Vec2)
+import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), Vec2, pathCommand)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
@@ -29,6 +29,7 @@ data Action
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
   | EditSelectedLayer (Layer -> Layer)
+  | SelectCommand PathCommandType
   | AddCommand Int
   | EditCommand Int PathCommand
   | TranslateStart MouseEvent
@@ -39,6 +40,23 @@ data Action
 
 toFixed :: Number -> String
 toFixed = toStringWith $ fixed 1
+
+radio :: forall a b x. Eq x => String -> Array x -> (x -> String) -> x -> (x -> b) -> Array (HH.HTML a b)
+radio id xs print value f =
+  xs # map (\x -> Tuple (print x) x)
+    # map \(Tuple name x) ->
+        HH.label_
+          [ HH.input
+              [ HP.type_ HP.InputRadio
+              , HP.name id
+              , HP.value name
+              , HP.checked $ x == value
+              , HE.onValueChange \_ -> f x
+              ]
+          , HH.span
+              (if x == value then [ HP.class_ $ HH.ClassName "radio-selected" ] else [])
+              [ HH.text name ]
+          ]
 
 appRoot :: forall query message. H.Component query Unit message Aff
 appRoot =
@@ -67,15 +85,17 @@ appRoot =
     , layers: []
     , selectedLayer: -1
     , cursorPos: { x: 0.0, y: 0.0 }
+    , command: L
     , dragging: Nothing
     , translating: Nothing
     }
 
-  render { canvas, scale, translate, layers, selectedLayer, cursorPos } =
+  render { canvas, scale, translate, layers, selectedLayer, cursorPos, command } =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div [ HP.class_ $ HH.ClassName "header" ]
           [ HH.text "Svg editor"
+          , HH.div_ $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show command SelectCommand
           ]
       , HH.div [ HP.class_ $ HH.ClassName "main" ]
           [ HH.div
@@ -169,14 +189,14 @@ appRoot =
     EditSelectedLayer f -> do
       { selectedLayer } <- H.get
       handleAction $ EditLayer selectedLayer f
+    SelectCommand commandType -> do
+      H.modify_ _ { command = commandType }
     AddCommand i -> do
-      { layers, selectedLayer, cursorPos } <- H.get
-      let
-        point = Line Abs
+      { layers, selectedLayer, cursorPos, command } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
             layer <- layers # find (_.id >>> (==) selectedLayer)
-            drawPath <- layer.drawPath # insertAt i (point cursorPos)
+            drawPath <- layer.drawPath # insertAt i (pathCommand command cursorPos)
             Just _ { drawPath = drawPath }
     EditCommand i j -> do
       { layers, selectedLayer } <- H.get

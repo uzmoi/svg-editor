@@ -33,6 +33,20 @@
 .header {
   z-index: 1001;
   background-color: var(--bg-primary);
+  label {
+    margin: 0.2em;
+    input[type="radio"] {
+      display: none;
+    }
+    span {
+      display: inline-block;
+      padding: 0.2em;
+      background-color: var(--bg-secondary);
+      &.radio-selected {
+        background-color: var(--accent);
+      }
+    }
+  }
 }
 
 .main {

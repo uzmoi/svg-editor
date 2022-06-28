@@ -1,9 +1,11 @@
 module SvgEditor.PathCommand
   ( PathCommand(..)
+  , PathCommandType(..)
   , Pos(..)
   , Vec2
   , commandName
   , nextPoint
+  , pathCommand
   , points
   , toHalogenPathCommand
   ) where
@@ -11,6 +13,38 @@ module SvgEditor.PathCommand
 import Prelude
 import Data.Tuple (Tuple(..))
 import Halogen.Svg.Attributes.Path as SP
+
+data PathCommandType
+  = M
+  | L
+  | C
+  | S
+  | Q
+  | T
+  -- | A
+  | Z
+
+instance showPathCommandType :: Show PathCommandType where
+  show = case _ of
+    M -> "M"
+    L -> "L"
+    C -> "C"
+    S -> "S"
+    Q -> "Q"
+    T -> "T"
+    Z -> "Z"
+
+derive instance eqPathCommandType :: Eq PathCommandType
+
+pathCommand :: PathCommandType -> Vec2 -> PathCommand
+pathCommand = case _ of
+  M -> Move Abs
+  L -> Line Abs
+  C -> \v -> Bez3 Abs v v v
+  S -> \v -> Bez3' Abs v v
+  Q -> \v -> Bez2 Abs v v
+  T -> Bez2' Abs
+  Z -> \_ -> Close
 
 type Vec2
   = { x :: Number, y :: Number }

@@ -12,7 +12,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
-import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY)
+import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (deltaY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
@@ -31,6 +31,7 @@ data Action
   | EditSelectedLayer (Layer -> Layer)
   | AddCommand Int
   | EditCommand Int PathCommand
+  | TranslateStart MouseEvent
   | DragStart Int (Vec2 -> PathCommand)
   | Drag MouseEvent
   | DragEnd
@@ -62,25 +63,29 @@ appRoot =
             }
         }
     , scale: 10
+    , translate: { x: 0.0, y: 0.0 }
     , layers: []
     , selectedLayer: -1
     , cursorPos: { x: 0.0, y: 0.0 }
     , dragging: Nothing
+    , translating: Nothing
     }
 
-  render { canvas, scale, layers, selectedLayer, cursorPos } =
+  render { canvas, scale, translate, layers, selectedLayer, cursorPos } =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div
           [ HP.class_ $ HH.ClassName "center-panel"
           , HE.onWheel \e -> Scale $ e # deltaY
           , HE.onMouseMove Drag
+          , HE.onMouseDown TranslateStart
           ]
           [ svgCanvas
               { dragStart: DragStart
               , addCommand: AddCommand
               }
               (toNumber scale / 10.0)
+              translate
               canvas
               layers
               selectedLayer
@@ -93,6 +98,11 @@ appRoot =
                   [ HH.text $ toFixed cursorPos.x
                   , HH.text ", "
                   , HH.text $ toFixed cursorPos.y
+                  ]
+              , HH.p_
+                  [ HH.text $ toFixed translate.x
+                  , HH.text ", "
+                  , HH.text $ toFixed translate.y
                   ]
               ]
           ]
@@ -170,9 +180,29 @@ appRoot =
             layer <- layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # updateAt i j
             Just _ { drawPath = drawPath }
+    TranslateStart e ->
+      if (e # button) == 1 then do
+        let
+          x = e # clientX # toNumber
+
+          y = e # clientY # toNumber
+        { translate } <- H.get
+        H.modify_ _ { translating = Just $ Tuple { x, y } translate }
+      else
+        pure unit
     DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
-    DragEnd -> H.modify_ _ { dragging = Nothing }
-    Drag e ->
+    DragEnd -> H.modify_ _ { dragging = Nothing, translating = Nothing }
+    Drag e -> do
+      { translating } <- H.get
+      translating
+        # maybe (pure unit) \(Tuple startPos startTranslate) ->
+            H.modify_
+              _
+                { translate =
+                  { x: startTranslate.x + (e # clientX # toNumber) - startPos.x
+                  , y: startTranslate.y + (e # clientY # toNumber) - startPos.y
+                  }
+                }
       H.getHTMLElementRef canvasContainerRef
         >>= case _ of
             Just canvasContainerEl -> do

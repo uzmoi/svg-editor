@@ -38,15 +38,16 @@ svgCanvas ::
   , addCommand :: Int -> b
   } ->
   Number ->
+  Vec2 ->
   Canvas ->
   Array Layer ->
   Int ->
   HH.HTML a b
-svgCanvas actions scale canvas layers selectedLayer =
+svgCanvas actions scale { x, y } canvas layers selectedLayer =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
-    , HP.style $ "transform:scale(" <> show scale <> ")"
+    , HP.style $ "transform:translate(" <> show x <> "px," <> show y <> "px)scale(" <> show scale <> ")"
     ]
     [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
     , case layers # find (_.id >>> (==) selectedLayer) of

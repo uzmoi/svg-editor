@@ -25,7 +25,7 @@ overlayPoint f size (Tuple v updateV) =
   HSE.circle
     [ HSA.cx v.x
     , HSA.cy v.y
-    , HSA.r $ size / 2.0
+    , HSA.r $ size / 1.5
     , HSA.fill $ Named "black"
     , HE.onMouseDown \_ -> f updateV
     ]
@@ -42,8 +42,8 @@ overlayLine f size (Tuple v0 pathCommand) =
     [ HSA.d [ SP.m SP.Abs v0.x v0.y, toHalogenPathCommand pathCommand ]
     , HSA.fillOpacity 0.0
     , HSA.stroke $ Named "black"
-    , HSA.strokeWidth $ size / 4.0
-    , HSA.strokeDashArray $ (show $ size * 4.0)
+    , HSA.strokeWidth $ size / 2.0
+    , HSA.strokeDashArray $ (show $ size * 3.0) <> " " <> show size
     , HE.onClick \_ -> f
     ]
 

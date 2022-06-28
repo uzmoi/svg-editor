@@ -48,6 +48,14 @@
   top: 0;
   left: 0;
   overflow: visible;
+  circle:hover {
+    cursor: pointer;
+    fill: var(--accent);
+  }
+  path:hover {
+    cursor: pointer;
+    stroke: var(--accent);
+  }
 }
 
 .center-panel-footer {

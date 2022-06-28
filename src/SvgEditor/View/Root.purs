@@ -137,7 +137,7 @@ appRoot =
         scale = floor $ deltaY / 100.0
       H.modify_ \state ->
         state
-          { scale = clamp 1 100 $ state.scale + scale
+          { scale = clamp 1 100 $ state.scale - scale
           }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000

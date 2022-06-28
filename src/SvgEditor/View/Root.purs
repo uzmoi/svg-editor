@@ -74,55 +74,60 @@ appRoot =
   render { canvas, scale, translate, layers, selectedLayer, cursorPos } =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
-      [ HH.div
-          [ HP.class_ $ HH.ClassName "center-panel"
-          , HE.onWheel \e -> Scale $ e # deltaY
-          , HE.onMouseMove Drag
-          , HE.onMouseDown TranslateStart
+      [ HH.div [ HP.class_ $ HH.ClassName "header" ]
+          [ HH.text "Svg editor"
           ]
-          [ svgCanvas
-              { dragStart: DragStart
-              , addCommand: AddCommand
-              }
-              (toNumber scale / 10.0)
-              translate
-              canvas
-              layers
-              selectedLayer
-          , HH.div [ HP.class_ $ HH.ClassName "center-panel-footer" ]
-              [ HH.p_
-                  [ HH.text $ show $ scale * 10
-                  , HH.text "%"
-                  ]
-              , HH.p_
-                  [ HH.text $ toFixed cursorPos.x
-                  , HH.text ", "
-                  , HH.text $ toFixed cursorPos.y
-                  ]
-              , HH.p_
-                  [ HH.text $ toFixed translate.x
-                  , HH.text ", "
-                  , HH.text $ toFixed translate.y
+      , HH.div [ HP.class_ $ HH.ClassName "main" ]
+          [ HH.div
+              [ HP.class_ $ HH.ClassName "center-panel"
+              , HE.onWheel \e -> Scale $ e # deltaY
+              , HE.onMouseMove Drag
+              , HE.onMouseDown TranslateStart
+              ]
+              [ svgCanvas
+                  { dragStart: DragStart
+                  , addCommand: AddCommand
+                  }
+                  (toNumber scale / 10.0)
+                  translate
+                  canvas
+                  layers
+                  selectedLayer
+              , HH.div [ HP.class_ $ HH.ClassName "center-panel-footer" ]
+                  [ HH.p_
+                      [ HH.text $ show $ scale * 10
+                      , HH.text "%"
+                      ]
+                  , HH.p_
+                      [ HH.text $ toFixed cursorPos.x
+                      , HH.text ", "
+                      , HH.text $ toFixed cursorPos.y
+                      ]
+                  , HH.p_
+                      [ HH.text $ toFixed translate.x
+                      , HH.text ", "
+                      , HH.text $ toFixed translate.y
+                      ]
                   ]
               ]
-          ]
-      , HH.div
-          [ HP.class_ $ HH.ClassName "right-panel" ]
-          [ layerList
-              { addLayer: AddLayer
-              , selectLayer: SelectLayer
-              , editLayer: EditLayer
-              }
-              layers
-              selectedLayer
-          , layers # find (_.id >>> (==) selectedLayer)
-              # ( maybe (HH.div_ [])
-                    $ layerInfo
-                        { editLayer: EditSelectedLayer
-                        , deleteLayer: DeleteLayer
-                        , editCommand: EditCommand
-                        }
-                )
+          , HH.div
+              [ HP.class_ $ HH.ClassName "right-panel" ]
+              [ layerList
+                  { addLayer: AddLayer
+                  , selectLayer: SelectLayer
+                  , editLayer: EditLayer
+                  }
+                  layers
+                  selectedLayer
+              , layers # find (_.id >>> (==) selectedLayer)
+                  # ( maybe (HH.div_ [])
+                        $ layerInfo
+                            { editLayer: EditSelectedLayer
+                            , deleteLayer: DeleteLayer
+                            , editCommand: EditCommand
+                            }
+                    )
+              ]
           ]
       ]
 

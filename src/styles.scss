@@ -26,6 +26,17 @@
 
 .root {
   display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  z-index: 1001;
+  background-color: var(--bg-primary);
+}
+
+.main {
+  display: flex;
   height: 100%;
 }
 
@@ -64,12 +75,18 @@
   right: 0;
   bottom: 0;
   background-color: var(--bg-primary);
+  user-select: none;
+  z-index: 1001;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
   p {
     display: inline-block;
-    padding-top: 0.1em;
-    padding-bottom: 0.1em;
     padding-left: 0.4em;
     padding-right: 0.4em;
+    font-size: 0.9em;
+  }
+  p + p {
+    border-left: 1px solid var(--text);
   }
 }
 

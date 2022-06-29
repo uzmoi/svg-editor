@@ -5,7 +5,7 @@ module SvgEditor.View.Canvas
 
 import Prelude
 import Data.Array (filter, find, snoc)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (maybe)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -33,30 +33,34 @@ canvasContainerRef :: H.RefLabel
 canvasContainerRef = H.RefLabel "canvasContainer"
 
 svgCanvas ::
-  forall a b.
+  forall a b c.
   { dragStart :: Int -> (Vec2 -> PathCommand) -> b
   , addCommand :: Int -> b
   } ->
   Number ->
-  Vec2 ->
-  Canvas ->
-  Array Layer ->
-  Int ->
+  { translate :: Vec2
+  , canvas :: Canvas
+  , layers :: Array Layer
+  , selectedLayer :: Int
+  | c
+  } ->
   HH.HTML a b
-svgCanvas actions scale { x, y } canvas layers selectedLayer =
+svgCanvas actions scale { translate, canvas, layers, selectedLayer } =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
-    , HP.style $ "transform:translate(" <> show x <> "px," <> show y <> "px)scale(" <> show scale <> ")"
+    , HP.style
+        $ ("transform:translate(" <> show translate.x <> "px," <> show translate.y <> "px)")
+        <> ("scale(" <> show scale <> ")")
     ]
     [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
-    , case layers # find (_.id >>> (==) selectedLayer) of
-        (Just layer) ->
-          HSE.svg
-            (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
-            $ overlayLines actions.addCommand size layer.drawPath
-            <> overlayPoints actions.dragStart size layer.drawPath
-        Nothing -> HH.div_ []
+    , HSE.svg
+        (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
+        ( layers # find (_.id >>> (==) selectedLayer)
+            # maybe [] \layer ->
+                overlayLines actions.addCommand size layer.drawPath
+                  <> overlayPoints actions.dragStart size layer.drawPath
+        )
     ]
   where
   size = 1.0 / scale

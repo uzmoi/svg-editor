@@ -90,12 +90,13 @@ appRoot =
     , translating: Nothing
     }
 
-  render { canvas, scale, translate, layers, selectedLayer, cursorPos, command } =
+  render state =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div [ HP.class_ $ HH.ClassName "header" ]
           [ HH.text "Svg editor"
-          , HH.div_ $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show command SelectCommand
+          , HH.div_
+              $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show state.command SelectCommand
           ]
       , HH.div [ HP.class_ $ HH.ClassName "main" ]
           [ HH.div
@@ -108,25 +109,22 @@ appRoot =
                   { dragStart: DragStart
                   , addCommand: AddCommand
                   }
-                  (toNumber scale / 10.0)
-                  translate
-                  canvas
-                  layers
-                  selectedLayer
+                  (toNumber state.scale / 10.0)
+                  state
               , HH.div [ HP.class_ $ HH.ClassName "center-panel-footer" ]
                   [ HH.p_
-                      [ HH.text $ show $ scale * 10
+                      [ HH.text $ show $ state.scale * 10
                       , HH.text "%"
                       ]
                   , HH.p_
-                      [ HH.text $ toFixed cursorPos.x
+                      [ HH.text $ toFixed state.cursorPos.x
                       , HH.text ", "
-                      , HH.text $ toFixed cursorPos.y
+                      , HH.text $ toFixed state.cursorPos.y
                       ]
                   , HH.p_
-                      [ HH.text $ toFixed translate.x
+                      [ HH.text $ toFixed state.translate.x
                       , HH.text ", "
-                      , HH.text $ toFixed translate.y
+                      , HH.text $ toFixed state.translate.y
                       ]
                   ]
               ]
@@ -137,9 +135,9 @@ appRoot =
                   , selectLayer: SelectLayer
                   , editLayer: EditLayer
                   }
-                  layers
-                  selectedLayer
-              , layers # find (_.id >>> (==) selectedLayer)
+                  state.layers
+                  state.selectedLayer
+              , state.layers # find (_.id >>> (==) state.selectedLayer)
                   # ( maybe (HH.div_ [])
                         $ layerInfo
                             { editLayer: EditSelectedLayer
@@ -205,16 +203,15 @@ appRoot =
             layer <- layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # updateAt i j
             Just _ { drawPath = drawPath }
-    TranslateStart e ->
-      if (e # button) == 1 then do
+    TranslateStart e -> case e # button of
+      1 -> do
         let
           x = e # clientX # toNumber
 
           y = e # clientY # toNumber
         { translate } <- H.get
         H.modify_ _ { translating = Just $ Tuple { x, y } translate }
-      else
-        pure unit
+      _ -> pure unit
     DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
     DragEnd -> H.modify_ _ { dragging = Nothing, translating = Nothing }
     Drag e -> do

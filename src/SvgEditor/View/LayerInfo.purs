@@ -52,9 +52,9 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
         [ HE.onClick \_ -> actions.deleteLayer ]
         [ HH.text "delete layer" ]
     , stringInput'
-        { name: "fill-color"
-        , value: fill.color
-        , onChange: \x -> _ { fill { color = x } }
+        { name: "fill-paint"
+        , value: fill.paint
+        , onChange: \x -> _ { fill { paint = x } }
         }
     , numberInput'
         { name: "fill-opacity"
@@ -69,9 +69,9 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
         , onChange: \x -> _ { fill { rule = x } }
         }
     , stringInput'
-        { name: "stroke-color"
-        , value: stroke.color
-        , onChange: \x -> _ { stroke { color = x } }
+        { name: "stroke-paint"
+        , value: stroke.paint
+        , onChange: \x -> _ { stroke { paint = x } }
         }
     , numberInput'
         { name: "stroke-opacity"

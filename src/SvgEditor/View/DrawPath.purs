@@ -8,6 +8,7 @@ import Data.Array (mapWithIndex)
 import Effect.Aff (Aff)
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import SvgEditor.Vec (Vec2(..))
 import SvgEditor.PathCommand (PathCommand, commandName, points)
 import SvgEditor.View.NumberInput (numberInput, Slot)
 
@@ -23,14 +24,14 @@ drawPath actions pathCommands =
         HH.li_
           [ HH.text $ commandName pathCommand
           , HH.div_ $ points pathCommand
-              # mapWithIndex \j (Tuple v updateV) ->
+              # mapWithIndex \j (Tuple (Vec2 v) updateV) ->
                   let
                     key = "draw-path." <> show i <> "." <> show j
 
                     handleEditVec f = actions.editCommand i <<< updateV <<< f
                   in
                     HH.div_
-                      [ numberInput (key <> ".x") v.x $ handleEditVec \x -> v { x = x }
-                      , numberInput (key <> ".y") v.y $ handleEditVec \y -> v { y = y }
+                      [ numberInput (key <> ".x") v.x $ handleEditVec \x -> Vec2 v { x = x }
+                      , numberInput (key <> ".y") v.y $ handleEditVec \y -> Vec2 v { y = y }
                       ]
           ]

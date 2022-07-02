@@ -2,7 +2,6 @@ module SvgEditor.PathCommand
   ( PathCommand(..)
   , PathCommandType(..)
   , Pos(..)
-  , Vec2
   , commandName
   , nextPoint
   , pathCommand
@@ -13,6 +12,7 @@ module SvgEditor.PathCommand
 import Prelude
 import Data.Tuple (Tuple(..))
 import Halogen.Svg.Attributes.Path as SP
+import SvgEditor.Vec (Vec2(..), vec2)
 
 data PathCommandType
   = M
@@ -36,7 +36,7 @@ instance showPathCommandType :: Show PathCommandType where
 
 derive instance eqPathCommandType :: Eq PathCommandType
 
-pathCommand :: PathCommandType -> Vec2 -> PathCommand
+pathCommand :: PathCommandType -> Vec2 Number -> PathCommand
 pathCommand = case _ of
   M -> Move Abs
   L -> Line Abs
@@ -46,21 +46,18 @@ pathCommand = case _ of
   T -> Bez2' Abs
   Z -> \_ -> Close
 
-type Vec2
-  = { x :: Number, y :: Number }
-
 data Pos
   = Rel
   | Abs
 
 data PathCommand
-  = Move Pos Vec2
-  | Line Pos Vec2
-  | Bez3 Pos Vec2 Vec2 Vec2
-  | Bez3' Pos Vec2 Vec2
-  | Bez2 Pos Vec2 Vec2
-  | Bez2' Pos Vec2
-  -- | Arc Pos Number Boolean Boolean Vec2
+  = Move Pos (Vec2 Number)
+  | Line Pos (Vec2 Number)
+  | Bez3 Pos (Vec2 Number) (Vec2 Number) (Vec2 Number)
+  | Bez3' Pos (Vec2 Number) (Vec2 Number)
+  | Bez2 Pos (Vec2 Number) (Vec2 Number)
+  | Bez2' Pos (Vec2 Number)
+  -- | Arc Pos Number Boolean Boolean (Vec2 Number)
   | Close
 
 commandName :: PathCommand -> String
@@ -73,7 +70,7 @@ commandName = case _ of
   Bez2' _ _ -> "Bezier2"
   Close -> "Close"
 
-nextPoint :: PathCommand -> Vec2
+nextPoint :: PathCommand -> Vec2 Number
 nextPoint = case _ of
   Move _ v -> v
   Line _ v -> v
@@ -81,9 +78,9 @@ nextPoint = case _ of
   Bez3' _ _ v -> v
   Bez2 _ _ v -> v
   Bez2' _ v -> v
-  Close -> { x: 0.0, y: 0.0 }
+  Close -> zero
 
-points :: PathCommand -> Array (Tuple Vec2 (Vec2 -> PathCommand))
+points :: PathCommand -> Array (Tuple (Vec2 Number) (Vec2 Number -> PathCommand))
 points = case _ of
   Move ref v -> [ Tuple v $ Move ref ]
   Line ref v -> [ Tuple v $ Line ref ]
@@ -103,17 +100,14 @@ points = case _ of
   Bez2' ref v1 -> [ Tuple v1 $ Bez2' ref ]
   Close -> []
 
-applyVec :: forall r. (Number -> Number -> r) -> Vec2 -> r
-applyVec f v = f v.x v.y
-
 toHalogenPathCommand :: PathCommand -> SP.PathCommand
 toHalogenPathCommand = case _ of
-  Move ref v -> SP.m (toHalogenPos ref) `applyVec` v
-  Line ref v -> SP.l (toHalogenPos ref) `applyVec` v
-  Bez3 ref v1 v2 v3 -> SP.c (toHalogenPos ref) `applyVec` v1 `applyVec` v2 `applyVec` v3
-  Bez3' ref v1 v2 -> SP.s (toHalogenPos ref) `applyVec` v1 `applyVec` v2
-  Bez2 ref v1 v2 -> SP.q (toHalogenPos ref) `applyVec` v1 `applyVec` v2
-  Bez2' ref v1 -> SP.t (toHalogenPos ref) `applyVec` v1
+  Move ref v -> SP.m (toHalogenPos ref) `vec2` v
+  Line ref v -> SP.l (toHalogenPos ref) `vec2` v
+  Bez3 ref v1 v2 v3 -> SP.c (toHalogenPos ref) `vec2` v1 `vec2` v2 `vec2` v3
+  Bez3' ref v1 v2 -> SP.s (toHalogenPos ref) `vec2` v1 `vec2` v2
+  Bez2 ref v1 v2 -> SP.q (toHalogenPos ref) `vec2` v1 `vec2` v2
+  Bez2' ref v1 -> SP.t (toHalogenPos ref) `vec2` v1
   Close -> SP.z
 
 toHalogenPos :: Pos -> SP.CommandPositionReference

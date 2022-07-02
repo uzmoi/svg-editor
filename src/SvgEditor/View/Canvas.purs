@@ -4,7 +4,7 @@ module SvgEditor.View.Canvas
   ) where
 
 import Prelude
-import Data.Array (filter, find, snoc)
+import Data.Array (filter, find)
 import Data.Maybe (maybe)
 import Halogen as H
 import Halogen.HTML as HH
@@ -14,9 +14,10 @@ import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes (class_)
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Indexed as I
+import SvgEditor.Vec (Vec2, toRecord)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
-import SvgEditor.PathCommand (PathCommand, Vec2)
+import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.Canvas.Layer (svgLayer)
 import SvgEditor.View.Canvas.Overlay (overlayPoints, overlayLines)
 
@@ -34,11 +35,11 @@ canvasContainerRef = H.RefLabel "canvasContainer"
 
 svgCanvas ::
   forall a b c.
-  { dragStart :: Int -> (Vec2 -> PathCommand) -> b
+  { dragStart :: Int -> (Vec2 Number -> PathCommand) -> b
   , addCommand :: Int -> b
   } ->
   Number ->
-  { translate :: Vec2
+  { translate :: Vec2 Number
   , canvas :: Canvas
   , layers :: Array Layer
   , selectedLayer :: Int
@@ -50,12 +51,12 @@ svgCanvas actions scale { translate, canvas, layers, selectedLayer } =
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
     , HP.style
-        $ ("transform:translate(" <> show translate.x <> "px," <> show translate.y <> "px)")
+        $ ("transform:translate(" <> show (toRecord translate).x <> "px," <> show (toRecord translate).y <> "px)")
         <> ("scale(" <> show scale <> ")")
     ]
     [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
     , HSE.svg
-        (snoc (canvasProps canvas) $ class_ $ HH.ClassName "overlay")
+        (canvasProps canvas <> [ class_ $ HH.ClassName "overlay" ])
         ( layers # find (_.id >>> (==) selectedLayer)
             # maybe [] \layer ->
                 overlayLines actions.addCommand size layer.drawPath

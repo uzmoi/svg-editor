@@ -66,7 +66,7 @@ type Stroke
 
 defaultStroke :: Stroke
 defaultStroke =
-  { color: "black"
+  { color: "none"
   , opacity: 1.0
   , width: 1.0
   , dashOffset: 0.0

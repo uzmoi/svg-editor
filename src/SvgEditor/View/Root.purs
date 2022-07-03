@@ -16,7 +16,7 @@ import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (deltaY)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
-import SvgEditor.Vec (Vec2(..), toRecord)
+import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
@@ -118,15 +118,19 @@ appRoot =
                       , HH.text "%"
                       ]
                   , HH.p_
-                      [ HH.text $ toFixed (state.cursorPos # toRecord).x
-                      , HH.text ", "
-                      , HH.text $ toFixed (state.cursorPos # toRecord).y
-                      ]
+                      $ state.cursorPos
+                      # vec2 \x y ->
+                          [ HH.text $ toFixed x
+                          , HH.text ", "
+                          , HH.text $ toFixed y
+                          ]
                   , HH.p_
-                      [ HH.text $ toFixed (state.translate # toRecord).x
-                      , HH.text ", "
-                      , HH.text $ toFixed (state.translate # toRecord).y
-                      ]
+                      $ state.translate
+                      # vec2 \x y ->
+                          [ HH.text $ toFixed x
+                          , HH.text ", "
+                          , HH.text $ toFixed y
+                          ]
                   ]
               ]
           , HH.div
@@ -226,16 +230,14 @@ appRoot =
               canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
               { canvas: { viewBox }, dragging } <- H.get
               let
-                offsetX = (clientPos # toRecord).x - canvasContainerRect.left
+                offset = clientPos - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
 
-                offsetY = (clientPos # toRecord).y - canvasContainerRect.top
-
-                cursorPos =
+                canvasRate =
                   Vec2
-                    { x: offsetX * (viewBox.right - viewBox.left) / canvasContainerRect.width
-                    , y: offsetY * (viewBox.bottom - viewBox.top) / canvasContainerRect.height
+                    { x: (viewBox.right - viewBox.left) / canvasContainerRect.width
+                    , y: (viewBox.bottom - viewBox.top) / canvasContainerRect.height
                     }
-              H.modify_ _ { cursorPos = cursorPos }
+              { cursorPos } <- H.modify _ { cursorPos = offset * canvasRate }
               handleAction $ dragging # maybe NOOP \(Tuple i j) -> EditCommand i $ j cursorPos
             Nothing -> pure unit
     NOOP -> pure unit

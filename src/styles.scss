@@ -5,6 +5,7 @@
     --bg-secondary: #ddd;
     --accent: #88d;
     --text: #333;
+    --error: #d44;
   }
 }
 
@@ -14,6 +15,7 @@
     --bg-secondary: #222;
     --accent: #448;
     --text: #eee;
+    --error: #c44;
   }
 }
 
@@ -189,4 +191,7 @@
   background-color: var(--bg-secondary);
   color: var(--text);
   outline-color: var(--accent);
+  &[aria-invalid="true"] {
+    outline-color: var(--error);
+  }
 }

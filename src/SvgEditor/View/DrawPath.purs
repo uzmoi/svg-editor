@@ -10,12 +10,13 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import SvgEditor.Vec (Vec2(..))
 import SvgEditor.PathCommand (PathCommand, commandName, points)
-import SvgEditor.View.NumberInput (numberInput, Slot)
+import SvgEditor.View.NumberInput (numberInput)
+import SvgEditor.View.InputControl (Slot)
 
 drawPath ::
   forall a.
   { editCommand :: Int -> PathCommand -> a } ->
-  Array PathCommand -> HH.ComponentHTML a Slot Aff
+  Array PathCommand -> HH.ComponentHTML a (Slot Number) Aff
 drawPath actions pathCommands =
   HH.ul
     [ HP.class_ $ HH.ClassName "draw-path-commands" ]

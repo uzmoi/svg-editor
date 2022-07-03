@@ -14,7 +14,8 @@ import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..), printStrokeLin
 import SvgEditor.Layer (Layer, FillRule(..))
 import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.DrawPath (drawPath)
-import SvgEditor.View.NumberInput (numberInput, Slot)
+import SvgEditor.View.NumberInput (numberInput)
+import SvgEditor.View.InputControl (Slot)
 
 select :: forall a b x. Eq x => String -> Array x -> (x -> String) -> x -> (x -> b) -> HH.HTML a b
 select id xs print value f =
@@ -39,7 +40,7 @@ layerInfo ::
   , deleteLayer :: a
   , editCommand :: Int -> PathCommand -> a
   } ->
-  Layer -> HH.ComponentHTML a Slot Aff
+  Layer -> HH.ComponentHTML a (Slot Number) Aff
 layerInfo actions { name, drawPath: drawPath', fill, stroke } =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]

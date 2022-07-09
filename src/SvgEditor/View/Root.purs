@@ -2,7 +2,7 @@ module SvgEditor.View.Root (appRoot) where
 
 import Prelude
 import Data.Tuple (Tuple(..))
-import Data.Array (filter, find, insertAt, updateAt, snoc)
+import Data.Array (filter, find, insertAt, updateAt, snoc, head)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
 import Data.Number.Format (toStringWith, fixed)
@@ -14,17 +14,20 @@ import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (deltaY)
+import Web.File.File (File, toBlob)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
+import SvgEditor.ReadFile (readAsDataURL)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
   = Scale Number
+  | SetRefImage File
   | AddLayer
   | DeleteLayer
   | EditLayer Int (Layer -> Layer)
@@ -83,6 +86,7 @@ appRoot =
         }
     , scale: 10
     , translate: zero
+    , refImage: ""
     , layers: []
     , selectedLayer: -1
     , cursorPos: zero
@@ -117,6 +121,10 @@ appRoot =
                       , HH.text ", "
                       , HH.text $ toFixed y
                       ]
+              , HH.input
+                  [ HP.type_ HP.InputFile
+                  , HE.onFileUpload $ head >>> maybe NOOP SetRefImage
+                  ]
               ]
           ]
       , HH.div [ HP.class_ $ HH.ClassName "main" ]
@@ -162,6 +170,9 @@ appRoot =
         state
           { scale = clamp 1 100 $ state.scale - scale
           }
+    SetRefImage file -> do
+      refImage <- H.liftAff $ readAsDataURL (file # toBlob) (\_ _ -> pure unit)
+      H.modify_ _ { refImage = refImage }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
       H.modify_ \state ->

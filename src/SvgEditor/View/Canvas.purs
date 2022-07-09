@@ -41,12 +41,13 @@ svgCanvas ::
   Number ->
   { translate :: Vec2 Number
   , canvas :: Canvas
+  , refImage :: String
   , layers :: Array Layer
   , selectedLayer :: Int
   | c
   } ->
   HH.HTML a b
-svgCanvas actions scale { translate, canvas, layers, selectedLayer } =
+svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
@@ -55,6 +56,11 @@ svgCanvas actions scale { translate, canvas, layers, selectedLayer } =
         <> ("scale(" <> show scale <> ")")
     ]
     [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
+    , HH.div
+        [ HP.classes [ HH.ClassName "overlay", HH.ClassName "ref-image" ]
+        , HP.style $ "background-image:url(\"" <> refImage <> "\")"
+        ]
+        []
     , HSE.svg
         (canvasProps canvas <> [ class_ $ HH.ClassName "overlay" ])
         ( layers # find (_.id >>> (==) selectedLayer)

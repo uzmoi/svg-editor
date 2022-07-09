@@ -52,69 +52,75 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } =
     , HH.button
         [ HE.onClick \_ -> actions.deleteLayer ]
         [ HH.text "delete layer" ]
-    , stringInput'
-        { name: "fill-paint"
-        , value: fill.paint
-        , onChange: \x -> _ { fill { paint = x } }
-        }
-    , numberInput'
-        { name: "fill-opacity"
-        , value: fill.opacity
-        , onChange: \x -> _ { fill { opacity = clamp 0.0 1.0 x } }
-        }
-    , selectInput'
-        { name: "fill-rule"
-        , value: fill.rule
-        , xs: [ NonZero, EvenOdd ]
-        , print: show
-        , onChange: \x -> _ { fill { rule = x } }
-        }
-    , stringInput'
-        { name: "stroke-paint"
-        , value: stroke.paint
-        , onChange: \x -> _ { stroke { paint = x } }
-        }
-    , numberInput'
-        { name: "stroke-opacity"
-        , value: stroke.opacity
-        , onChange: \x -> _ { stroke { opacity = clamp 0.0 1.0 x } }
-        }
-    , numberInput'
-        { name: "stroke-width"
-        , value: stroke.width
-        , onChange: \x -> _ { stroke { width = x } }
-        }
-    , numberInput'
-        { name: "dash-offset"
-        , value: stroke.dashOffset
-        , onChange: \x -> _ { stroke { dashOffset = x } }
-        }
-    , stringInput'
-        { name: "dash-array"
-        , value: stroke.dashArray
-        , onChange: \x -> _ { stroke { dashArray = x } }
-        }
-    , selectInput'
-        { name: "line-cap"
-        , value: stroke.lineCap
-        , xs: [ LineCapButt, LineCapSquare, LineCapRound ]
-        , print: printStrokeLineCap
-        , onChange: \x -> _ { stroke { lineCap = x } }
-        }
-    , selectInput'
-        { name: "line-join"
-        , value: stroke.lineJoin
-        , xs: [ LineJoinArcs, LineJoinBevel, LineJoinMiter, LineJoinMiterClip, LineJoinRound ]
-        , print: printStrokeLineJoin
-        , onChange: \x -> _ { stroke { lineJoin = x } }
-        }
-    , numberInput'
-        { name: "miter-limit"
-        , value: stroke.miterLimit
-        , onChange: \x -> _ { stroke { miterLimit = x } }
-        }
+    , HH.section_
+        [ HH.h3_ [ HH.text "path styles" ]
+        , stringInput'
+            { name: "fill-paint"
+            , value: fill.paint
+            , onChange: \x -> _ { fill { paint = x } }
+            }
+        , numberInput'
+            { name: "fill-opacity"
+            , value: fill.opacity
+            , onChange: \x -> _ { fill { opacity = clamp 0.0 1.0 x } }
+            }
+        , selectInput'
+            { name: "fill-rule"
+            , value: fill.rule
+            , xs: [ NonZero, EvenOdd ]
+            , print: show
+            , onChange: \x -> _ { fill { rule = x } }
+            }
+        , stringInput'
+            { name: "stroke-paint"
+            , value: stroke.paint
+            , onChange: \x -> _ { stroke { paint = x } }
+            }
+        , numberInput'
+            { name: "stroke-opacity"
+            , value: stroke.opacity
+            , onChange: \x -> _ { stroke { opacity = clamp 0.0 1.0 x } }
+            }
+        , numberInput'
+            { name: "stroke-width"
+            , value: stroke.width
+            , onChange: \x -> _ { stroke { width = x } }
+            }
+        , numberInput'
+            { name: "dash-offset"
+            , value: stroke.dashOffset
+            , onChange: \x -> _ { stroke { dashOffset = x } }
+            }
+        , stringInput'
+            { name: "dash-array"
+            , value: stroke.dashArray
+            , onChange: \x -> _ { stroke { dashArray = x } }
+            }
+        , selectInput'
+            { name: "line-cap"
+            , value: stroke.lineCap
+            , xs: [ LineCapButt, LineCapSquare, LineCapRound ]
+            , print: printStrokeLineCap
+            , onChange: \x -> _ { stroke { lineCap = x } }
+            }
+        , selectInput'
+            { name: "line-join"
+            , value: stroke.lineJoin
+            , xs: [ LineJoinArcs, LineJoinBevel, LineJoinMiter, LineJoinMiterClip, LineJoinRound ]
+            , print: printStrokeLineJoin
+            , onChange: \x -> _ { stroke { lineJoin = x } }
+            }
+        , numberInput'
+            { name: "miter-limit"
+            , value: stroke.miterLimit
+            , onChange: \x -> _ { stroke { miterLimit = x } }
+            }
+        ]
     , HH.hr_
-    , drawPath { editCommand: actions.editCommand } drawPath'
+    , HH.section_
+        [ HH.h3_ [ HH.text "path commands" ]
+        , drawPath { editCommand: actions.editCommand } drawPath'
+        ]
     ]
   where
   stringInput' { name, value, onChange } =

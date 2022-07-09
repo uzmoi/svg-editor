@@ -147,7 +147,8 @@
 }
 
 .layer-info {
-  padding: 1em;
+  user-select: none;
+  padding: 0.8em;
   .layer-name-input {
     padding: 0.3em;
     width: 100%;
@@ -161,6 +162,11 @@
     &:focus {
       border-bottom-color: var(--accent);
     }
+  }
+  h3 {
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+    text-align: center;
   }
   .style-input {
     display: flex;

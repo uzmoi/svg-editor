@@ -36,17 +36,32 @@
   z-index: 1001;
   user-select: none;
   background-color: var(--bg-primary);
+  h1 {
+    margin: 0.3em;
+    font-size: 1.5em;
+  }
   .menu-bar {
     display: flex;
+    font-size: 0.9em;
+    align-items: center;
+    > * {
+      margin: 0.2em;
+    }
+    > * + * {
+      margin-left: 0.4em;
+    }
   }
   label {
-    margin: 0.2em;
+    margin-left: 0.4em;
     input[type="radio"] {
       display: none;
     }
     span {
       display: inline-block;
-      padding: 0.2em;
+      width: 1.8em;
+      height: 1.8em;
+      text-align: center;
+      border-radius: 0.4em;
       background-color: var(--bg-secondary);
       &.radio-selected {
         background-color: var(--accent);

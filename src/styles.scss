@@ -89,12 +89,28 @@
   vertical-align: top;
 }
 
-.canvas-container .overlay {
+%abs0 {
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
+}
+
+.canvas-container .ref-image-container {
+  overflow: hidden;
+  &, .ref-image {
+    @extend %abs0;
+  }
+  .ref-image {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+}
+
+.canvas-container .overlay {
+  @extend %abs0;
   overflow: visible;
   circle:hover {
     cursor: pointer;
@@ -103,11 +119,6 @@
   path:hover {
     cursor: pointer;
     stroke: var(--accent);
-  }
-  &.ref-image {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
   }
 }
 

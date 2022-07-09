@@ -21,13 +21,21 @@ import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
 import SvgEditor.ReadFile (readAsDataURL)
+import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
+type RefImage
+  = { uri :: String
+    , translate :: Vec2 Number
+    , scale :: Number
+    }
+
 data Action
   = Scale Number
   | SetRefImage File
+  | ModifyRefImage (RefImage -> RefImage)
   | AddLayer
   | DeleteLayer
   | EditLayer Int (Layer -> Layer)
@@ -86,7 +94,11 @@ appRoot =
         }
     , scale: 10
     , translate: zero
-    , refImage: ""
+    , refImage:
+        { uri: ""
+        , translate: zero
+        , scale: 1.0
+        }
     , layers: []
     , selectedLayer: -1
     , cursorPos: zero
@@ -125,6 +137,18 @@ appRoot =
                   [ HP.type_ HP.InputFile
                   , HE.onFileUpload $ head >>> maybe NOOP SetRefImage
                   ]
+              , HH.div_
+                  $ state.refImage.translate
+                  # vec2 \x y ->
+                      [ numberInput "ref-image.x" x \x ->
+                          ModifyRefImage \refimg ->
+                            refimg { translate = refimg.translate # vec2 \_ y -> Vec2 { x, y } }
+                      , numberInput "ref-image.y" y \y ->
+                          ModifyRefImage \refimg ->
+                            refimg { translate = refimg.translate # vec2 \x _ -> Vec2 { x, y } }
+                      , numberInput "ref-image.scale"
+                          state.refImage.scale \scale -> ModifyRefImage _ { scale = scale }
+                      ]
               ]
           ]
       , HH.div [ HP.class_ $ HH.ClassName "main" ]
@@ -172,7 +196,8 @@ appRoot =
           }
     SetRefImage file -> do
       refImage <- H.liftAff $ readAsDataURL (file # toBlob) (\_ _ -> pure unit)
-      H.modify_ _ { refImage = refImage }
+      H.modify_ _ { refImage { uri = refImage } }
+    ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
       H.modify_ \state ->

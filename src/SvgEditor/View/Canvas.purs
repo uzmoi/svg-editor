@@ -10,6 +10,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Properties (IProp)
+import Halogen.HTML.Properties.ARIA as ARIA
 import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes (class_)
 import Halogen.Svg.Attributes as HSA
@@ -51,6 +52,7 @@ svgCanvas ::
       { uri :: String
       , translate :: Vec2 Number
       , scale :: Number
+      , show :: Boolean
       }
   , layers :: Array Layer
   , selectedLayer :: Int
@@ -70,6 +72,7 @@ svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
             [ HP.class_ $ HH.ClassName "ref-image"
             , HP.style $ "background-image:url(\"" <> refImage.uri <> "\");"
                 <> transform refImage.translate refImage.scale
+            , ARIA.hidden $ show $ not refImage.show
             ]
             []
         ]

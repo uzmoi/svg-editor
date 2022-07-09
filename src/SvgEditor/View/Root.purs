@@ -95,9 +95,29 @@ appRoot =
     HH.div
       [ HE.onMouseUp \_ -> DragEnd, HP.class_ $ HH.ClassName "root" ]
       [ HH.div [ HP.class_ $ HH.ClassName "header" ]
-          [ HH.text "Svg editor"
-          , HH.div_
-              $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show state.command SelectCommand
+          [ HH.h1_ [ HH.text "Svg editor" ]
+          , HH.div [ HP.class_ $ HH.ClassName "menu-bar" ]
+              [ HH.div_
+                  $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show state.command SelectCommand
+              , HH.p_
+                  [ HH.text $ show $ state.scale * 10
+                  , HH.text "%"
+                  ]
+              , HH.p_
+                  $ state.translate
+                  # vec2 \x y ->
+                      [ HH.text $ toFixed x
+                      , HH.text ", "
+                      , HH.text $ toFixed y
+                      ]
+              , HH.p_
+                  $ state.cursorPos
+                  # vec2 \x y ->
+                      [ HH.text $ toFixed x
+                      , HH.text ", "
+                      , HH.text $ toFixed y
+                      ]
+              ]
           ]
       , HH.div [ HP.class_ $ HH.ClassName "main" ]
           [ HH.div
@@ -112,26 +132,6 @@ appRoot =
                   }
                   (toNumber state.scale / 10.0)
                   state
-              , HH.div [ HP.class_ $ HH.ClassName "center-panel-footer" ]
-                  [ HH.p_
-                      [ HH.text $ show $ state.scale * 10
-                      , HH.text "%"
-                      ]
-                  , HH.p_
-                      $ state.cursorPos
-                      # vec2 \x y ->
-                          [ HH.text $ toFixed x
-                          , HH.text ", "
-                          , HH.text $ toFixed y
-                          ]
-                  , HH.p_
-                      $ state.translate
-                      # vec2 \x y ->
-                          [ HH.text $ toFixed x
-                          , HH.text ", "
-                          , HH.text $ toFixed y
-                          ]
-                  ]
               ]
           , HH.div
               [ HP.class_ $ HH.ClassName "right-panel" ]

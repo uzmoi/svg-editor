@@ -15,12 +15,12 @@ import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (deltaY)
 import Web.File.File (File, toBlob)
+import Web.File.Url (createObjectURL, revokeObjectURL)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
-import SvgEditor.ReadFile (readAsDataURL)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
@@ -200,7 +200,11 @@ appRoot =
           { scale = clamp 1 100 $ state.scale - scale
           }
     SetRefImage file -> do
-      refImage <- H.liftAff $ readAsDataURL (file # toBlob) (\_ _ -> pure unit)
+      { refImage } <- H.get
+      refImage <-
+        H.liftEffect
+          $ revokeObjectURL refImage.uri
+          *> createObjectURL (file # toBlob)
       H.modify_ _ { refImage { uri = refImage } }
     ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do

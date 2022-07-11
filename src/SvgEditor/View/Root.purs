@@ -2,7 +2,7 @@ module SvgEditor.View.Root (appRoot) where
 
 import Prelude
 import Data.Tuple (Tuple(..))
-import Data.Array (filter, find, insertAt, updateAt, snoc, head)
+import Data.Array (filter, find, insertAt, updateAt, head)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
 import Data.Number.Format (toStringWith, fixed)
@@ -49,19 +49,19 @@ toFixed = toStringWith $ fixed 1
 
 radio :: forall a b x. Eq x => String -> Array x -> (x -> String) -> x -> (x -> b) -> Array (HH.HTML a b)
 radio id xs print value f =
-  xs # map (\x -> Tuple (print x) x)
-    # map \(Tuple name x) ->
+  xs
+    # map \x ->
         HH.label_
           [ HH.input
               [ HP.type_ HP.InputRadio
               , HP.name id
-              , HP.value name
+              , HP.value $ print x
               , HP.checked $ x == value
               , HE.onValueChange \_ -> f x
               ]
           , HH.span
               (if x == value then [ HP.class_ $ HH.ClassName "radio-selected" ] else [])
-              [ HH.text name ]
+              [ HH.text $ print x ]
           ]
 
 appRoot :: forall query message. H.Component query Unit message Aff
@@ -193,28 +193,20 @@ appRoot =
   handleAction = case _ of
     Scale e -> do
       { scale, translate } <- H.get
-      let
-        deltaScale = floor $ (e # deltaY) / 100.0
-
-        newScale = clamp 1 100 $ scale - deltaScale
-
-        scaleRate = (newScale # toNumber) / (scale # toNumber)
       H.getHTMLElementRef canvasContainerRef
-        >>= case _ of
-            Just canvasContainerEl -> do
-              canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
-              let
-                offset =
-                  (toNumber <$> (clientPos $ e # toMouseEvent))
-                    - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
+        >>= maybe (pure unit) \canvasContainerEl -> do
+            canvasRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
+            let
+              offset =
+                (toNumber <$> (clientPos $ e # toMouseEvent))
+                  - Vec2 { x: canvasRect.left, y: canvasRect.top }
 
-                deltaTranslate = offset - (offset # map ((*) scaleRate))
-              H.modify_
-                _
-                  { scale = newScale
-                  , translate = translate + deltaTranslate
-                  }
-            Nothing -> pure unit
+              newScale = clamp 1 100 $ scale - (floor $ deltaY e / 100.0)
+
+              deltaTranslate = offset - ((*) scaleRate <$> offset)
+                where
+                scaleRate = (newScale # toNumber) / (scale # toNumber)
+            H.modify_ _ { scale = newScale, translate = translate + deltaTranslate }
     SetRefImage file -> do
       { refImage } <- H.get
       refImage <-
@@ -225,22 +217,20 @@ appRoot =
     ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
-      H.modify_ \state ->
-        state
-          { layers =
-            snoc state.layers
-              { id
-              , name: "Layer"
-              , show: true
-              , drawPath:
-                  [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
-                  , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
-                  , Close
-                  ]
-              , fill: defaultFill
-              , stroke: defaultStroke
-              }
+      let
+        newLayer =
+          { id
+          , name: "Layer"
+          , show: true
+          , drawPath:
+              [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
+              , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
+              , Close
+              ]
+          , fill: defaultFill
+          , stroke: defaultStroke
           }
+      H.modify_ \state -> state { layers = state.layers <> [ newLayer ] }
     DeleteLayer ->
       H.modify_ \state@{ selectedLayer } ->
         state { layers = state.layers # filter (_.id >>> (/=) selectedLayer) }
@@ -282,21 +272,17 @@ appRoot =
         # maybe (pure unit) \startTranslate ->
             H.modify_ _ { translate = startTranslate + (toNumber <$> clientPos e) }
       H.getHTMLElementRef canvasContainerRef
-        >>= case _ of
-            Just canvasContainerEl -> do
-              canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
-              { canvas: { viewBox }, dragging } <- H.get
-              let
-                offset =
-                  (toNumber <$> clientPos e)
-                    - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
+        >>= maybe (pure unit) \canvasContainerEl -> do
+            canvasRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
+            { canvas: { viewBox }, dragging } <- H.get
+            let
+              offset = (toNumber <$> clientPos e) - Vec2 { x: canvasRect.left, y: canvasRect.top }
 
-                canvasRate =
-                  Vec2
-                    { x: (viewBox.right - viewBox.left) / canvasContainerRect.width
-                    , y: (viewBox.bottom - viewBox.top) / canvasContainerRect.height
-                    }
-              { cursorPos } <- H.modify _ { cursorPos = offset * canvasRate }
-              handleAction $ dragging # maybe NOOP \(Tuple i j) -> EditCommand i $ j cursorPos
-            Nothing -> pure unit
+              canvasRate =
+                Vec2
+                  { x: (viewBox.right - viewBox.left) / canvasRect.width
+                  , y: (viewBox.bottom - viewBox.top) / canvasRect.height
+                  }
+            { cursorPos } <- H.modify _ { cursorPos = offset * canvasRate }
+            handleAction $ dragging # maybe NOOP \(Tuple i j) -> EditCommand i $ j cursorPos
     NOOP -> pure unit

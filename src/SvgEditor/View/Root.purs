@@ -13,7 +13,7 @@ import Halogen.HTML.Properties as HP
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
-import Web.UIEvent.WheelEvent (deltaY)
+import Web.UIEvent.WheelEvent (WheelEvent, toMouseEvent, deltaY)
 import Web.File.File (File, toBlob)
 import Web.File.Url (createObjectURL, revokeObjectURL)
 import Effect.Aff (Aff)
@@ -27,7 +27,7 @@ import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
-  = Scale Number
+  = Scale WheelEvent
   | SetRefImage File
   | ModifyRefImage (RefImage -> RefImage)
   | AddLayer
@@ -156,7 +156,7 @@ appRoot =
       , HH.div [ HP.class_ $ HH.ClassName "main" ]
           [ HH.div
               [ HP.class_ $ HH.ClassName "center-panel"
-              , HE.onWheel \e -> Scale $ e # deltaY
+              , HE.onWheel Scale
               , HE.onMouseMove Drag
               , HE.onMouseDown TranslateStart
               ]
@@ -189,13 +189,30 @@ appRoot =
       ]
 
   handleAction = case _ of
-    Scale deltaY -> do
+    Scale e -> do
+      { scale, translate } <- H.get
       let
-        scale = floor $ deltaY / 100.0
-      H.modify_ \state ->
-        state
-          { scale = clamp 1 100 $ state.scale - scale
-          }
+        deltaScale = floor $ (e # deltaY) / 100.0
+
+        newScale = clamp 1 100 $ scale - deltaScale
+
+        scaleRate = (newScale # toNumber) / (scale # toNumber)
+
+        clientPos = Vec2 { x: e # toMouseEvent # clientX # toNumber, y: e # toMouseEvent # clientY # toNumber }
+      H.getHTMLElementRef canvasContainerRef
+        >>= case _ of
+            Just canvasContainerEl -> do
+              canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
+              let
+                offset = clientPos - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
+
+                deltaTranslate = offset - (offset # map ((*) scaleRate))
+              H.modify_
+                _
+                  { scale = newScale
+                  , translate = translate + deltaTranslate
+                  }
+            Nothing -> pure unit
     SetRefImage file -> do
       { refImage } <- H.get
       refImage <-

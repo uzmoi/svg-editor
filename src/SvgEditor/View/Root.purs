@@ -188,6 +188,8 @@ appRoot =
           ]
       ]
 
+  clientPos e = Vec2 { x: e # clientX, y: e # clientY }
+
   handleAction = case _ of
     Scale e -> do
       { scale, translate } <- H.get
@@ -197,14 +199,14 @@ appRoot =
         newScale = clamp 1 100 $ scale - deltaScale
 
         scaleRate = (newScale # toNumber) / (scale # toNumber)
-
-        clientPos = Vec2 { x: e # toMouseEvent # clientX # toNumber, y: e # toMouseEvent # clientY # toNumber }
       H.getHTMLElementRef canvasContainerRef
         >>= case _ of
             Just canvasContainerEl -> do
               canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
               let
-                offset = clientPos - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
+                offset =
+                  (toNumber <$> (clientPos $ e # toMouseEvent))
+                    - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
 
                 deltaTranslate = offset - (offset # map ((*) scaleRate))
               H.modify_
@@ -269,27 +271,25 @@ appRoot =
             Just _ { drawPath = drawPath }
     TranslateStart e -> case e # button of
       1 -> do
-        let
-          clientPos = Vec2 { x: e # clientX # toNumber, y: e # clientY # toNumber }
         { translate } <- H.get
-        H.modify_ _ { translating = Just $ translate - clientPos }
+        H.modify_ _ { translating = Just $ translate - (toNumber <$> clientPos e) }
       _ -> pure unit
     DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
     DragEnd -> H.modify_ _ { dragging = Nothing, translating = Nothing }
     Drag e -> do
-      let
-        clientPos = Vec2 { x: e # clientX # toNumber, y: e # clientY # toNumber }
       { translating } <- H.get
       translating
         # maybe (pure unit) \startTranslate ->
-            H.modify_ _ { translate = startTranslate + clientPos }
+            H.modify_ _ { translate = startTranslate + (toNumber <$> clientPos e) }
       H.getHTMLElementRef canvasContainerRef
         >>= case _ of
             Just canvasContainerEl -> do
               canvasContainerRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
               { canvas: { viewBox }, dragging } <- H.get
               let
-                offset = clientPos - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
+                offset =
+                  (toNumber <$> clientPos e)
+                    - Vec2 { x: canvasContainerRect.left, y: canvasContainerRect.top }
 
                 canvasRate =
                   Vec2

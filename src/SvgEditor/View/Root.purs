@@ -30,6 +30,7 @@ type RefImage
   = { uri :: String
     , translate :: Vec2 Number
     , scale :: Number
+    , opacity :: Number
     , show :: Boolean
     }
 
@@ -99,6 +100,7 @@ appRoot =
         { uri: ""
         , translate: zero
         , scale: 1.0
+        , opacity: 0.5
         , show: true
         }
     , layers: []
@@ -150,6 +152,9 @@ appRoot =
                             refimg { translate = refimg.translate # vec2 \x _ -> Vec2 { x, y } }
                       , numberInput "ref-image.scale"
                           state.refImage.scale \scale -> ModifyRefImage _ { scale = scale }
+                      , numberInput "ref-image.opacity"
+                          state.refImage.opacity \opacity ->
+                          ModifyRefImage _ { opacity = clamp 0.0 1.0 opacity }
                       , HH.button
                           [ HE.onClick \_ -> ModifyRefImage _ { show = not state.refImage.show } ]
                           [ HH.text if state.refImage.show then "hide" else "show" ]

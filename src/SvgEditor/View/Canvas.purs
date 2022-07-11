@@ -52,6 +52,7 @@ svgCanvas ::
       { uri :: String
       , translate :: Vec2 Number
       , scale :: Number
+      , opacity :: Number
       , show :: Boolean
       }
   , layers :: Array Layer
@@ -71,6 +72,7 @@ svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
         [ HH.div
             [ HP.class_ $ HH.ClassName "ref-image"
             , HP.style $ "background-image:url(\"" <> refImage.uri <> "\");"
+                <> ("opacity:" <> show refImage.opacity <> ";")
                 <> transform refImage.translate refImage.scale
             , ARIA.hidden $ show $ not refImage.show
             ]

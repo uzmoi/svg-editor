@@ -22,17 +22,9 @@ import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
 import SvgEditor.View.NumberInput (numberInput)
-import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
+import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
-
-type RefImage
-  = { uri :: String
-    , translate :: Vec2 Number
-    , scale :: Number
-    , opacity :: Number
-    , show :: Boolean
-    }
 
 data Action
   = Scale Number

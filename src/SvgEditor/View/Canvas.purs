@@ -1,5 +1,6 @@
 module SvgEditor.View.Canvas
-  ( canvasContainerRef
+  ( RefImage
+  , canvasContainerRef
   , svgCanvas
   ) where
 
@@ -21,6 +22,14 @@ import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.Canvas.Layer (svgLayer)
 import SvgEditor.View.Canvas.Overlay (overlayPoints, overlayLines)
+
+type RefImage
+  = { uri :: String
+    , translate :: Vec2 Number
+    , scale :: Number
+    , opacity :: Number
+    , show :: Boolean
+    }
 
 canvasProps :: Canvas -> forall i. Array (IProp I.SVGsvg i)
 canvasProps { viewBox } =
@@ -48,13 +57,7 @@ svgCanvas ::
   Number ->
   { translate :: Vec2 Number
   , canvas :: Canvas
-  , refImage ::
-      { uri :: String
-      , translate :: Vec2 Number
-      , scale :: Number
-      , opacity :: Number
-      , show :: Boolean
-      }
+  , refImage :: RefImage
   , layers :: Array Layer
   , selectedLayer :: Int
   | c

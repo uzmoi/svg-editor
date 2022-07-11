@@ -25,6 +25,9 @@ vec2 f (Vec2 v) = f v.x v.y
 square :: forall a. a -> Vec2 a
 square x = Vec2 { x, y: x }
 
+instance showVec :: Show a => Show (Vec2 a) where
+  show (Vec2 v) = "(Vec2 " <> show v.x <> ", " <> show v.y <> ")"
+
 instance functorVec :: Functor Vec2 where
   map f (Vec2 v) = Vec2 { x: f v.x, y: f v.y }
 

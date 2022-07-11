@@ -1,8 +1,9 @@
 module SvgEditor.Vec
   ( Vec2(..)
   , VecRecord
-  , vec2
+  , square
   , toRecord
+  , vec2
   ) where
 
 import Prelude
@@ -21,6 +22,9 @@ toRecord = unsafeCoerce
 vec2 :: forall a b. (a -> a -> b) -> Vec2 a -> b
 vec2 f (Vec2 v) = f v.x v.y
 
+square :: forall a. a -> Vec2 a
+square x = Vec2 { x, y: x }
+
 instance functorVec :: Functor Vec2 where
   map f (Vec2 v) = Vec2 { x: f v.x, y: f v.y }
 
@@ -29,9 +33,9 @@ instance applyVec :: Apply Vec2 where
 
 instance semiringVec :: Semiring a => Semiring (Vec2 a) where
   add = lift2 (+)
-  zero = Vec2 { x: zero, y: zero }
+  zero = square zero
   mul = lift2 (*)
-  one = Vec2 { x: one, y: one }
+  one = square one
 
 instance ringVec :: Ring a => Ring (Vec2 a) where
   sub = lift2 (-)

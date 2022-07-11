@@ -2,7 +2,7 @@ module SvgEditor.View.Root (appRoot) where
 
 import Prelude
 import Data.Tuple (Tuple(..))
-import Data.Array (filter, find, insertAt, updateAt, snoc)
+import Data.Array (filter, find, insertAt, updateAt, snoc, head)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
 import Data.Number.Format (toStringWith, fixed)
@@ -14,17 +14,22 @@ import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (deltaY)
+import Web.File.File (File, toBlob)
+import Web.File.Url (createObjectURL, revokeObjectURL)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
-import SvgEditor.View.Canvas (svgCanvas, canvasContainerRef)
+import SvgEditor.View.NumberInput (numberInput)
+import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
   = Scale Number
+  | SetRefImage File
+  | ModifyRefImage (RefImage -> RefImage)
   | AddLayer
   | DeleteLayer
   | EditLayer Int (Layer -> Layer)
@@ -83,6 +88,13 @@ appRoot =
         }
     , scale: 10
     , translate: zero
+    , refImage:
+        { uri: ""
+        , translate: zero
+        , scale: 1.0
+        , opacity: 0.5
+        , show: true
+        }
     , layers: []
     , selectedLayer: -1
     , cursorPos: zero
@@ -116,6 +128,28 @@ appRoot =
                       [ HH.text $ toFixed x
                       , HH.text ", "
                       , HH.text $ toFixed y
+                      ]
+              , HH.input
+                  [ HP.type_ HP.InputFile
+                  , HE.onFileUpload $ head >>> maybe NOOP SetRefImage
+                  ]
+              , HH.div_
+                  $ state.refImage.translate
+                  # vec2 \x y ->
+                      [ numberInput "ref-image.x" x \x ->
+                          ModifyRefImage \refimg ->
+                            refimg { translate = refimg.translate # vec2 \_ y -> Vec2 { x, y } }
+                      , numberInput "ref-image.y" y \y ->
+                          ModifyRefImage \refimg ->
+                            refimg { translate = refimg.translate # vec2 \x _ -> Vec2 { x, y } }
+                      , numberInput "ref-image.scale"
+                          state.refImage.scale \scale -> ModifyRefImage _ { scale = scale }
+                      , numberInput "ref-image.opacity"
+                          state.refImage.opacity \opacity ->
+                          ModifyRefImage _ { opacity = clamp 0.0 1.0 opacity }
+                      , HH.button
+                          [ HE.onClick \_ -> ModifyRefImage _ { show = not state.refImage.show } ]
+                          [ HH.text if state.refImage.show then "hide" else "show" ]
                       ]
               ]
           ]
@@ -162,6 +196,14 @@ appRoot =
         state
           { scale = clamp 1 100 $ state.scale - scale
           }
+    SetRefImage file -> do
+      { refImage } <- H.get
+      refImage <-
+        H.liftEffect
+          $ revokeObjectURL refImage.uri
+          *> createObjectURL (file # toBlob)
+      H.modify_ _ { refImage { uri = refImage } }
+    ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
       H.modify_ \state ->

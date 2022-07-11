@@ -1,13 +1,17 @@
 { name = "svg-editor"
 , dependencies =
   [ "aff"
+  , "arraybuffer-types"
   , "arrays"
   , "console"
   , "effect"
+  , "either"
   , "exceptions"
+  , "foreign"
   , "halogen"
   , "halogen-svg-elems"
   , "integers"
+  , "lists"
   , "maybe"
   , "numbers"
   , "partial"
@@ -17,8 +21,11 @@
   , "tuples"
   , "unsafe-coerce"
   , "web-dom"
+  , "web-events"
+  , "web-file"
   , "web-html"
   , "web-uievents"
+  , "web-xhr"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

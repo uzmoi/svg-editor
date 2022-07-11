@@ -116,13 +116,6 @@ appRoot =
                   , HH.text "%"
                   ]
               , HH.p_
-                  $ state.translate
-                  # vec2 \x y ->
-                      [ HH.text $ toFixed x
-                      , HH.text ", "
-                      , HH.text $ toFixed y
-                      ]
-              , HH.p_
                   $ state.cursorPos
                   # vec2 \x y ->
                       [ HH.text $ toFixed x

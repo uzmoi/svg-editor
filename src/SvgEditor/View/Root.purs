@@ -5,6 +5,7 @@ import Data.Tuple (Tuple(..))
 import Data.Array (filter, find, insertAt, updateAt, head)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
+import Data.Number (pow, sign)
 import Data.Number.Format (toStringWith, fixed)
 import Halogen as H
 import Halogen.HTML as HH
@@ -86,7 +87,7 @@ appRoot =
             , right: 100.0
             }
         }
-    , scale: 10
+    , scale: 100.0
     , translate: zero
     , refImage:
         { uri: ""
@@ -112,7 +113,7 @@ appRoot =
               [ HH.div_
                   $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show state.command SelectCommand
               , HH.p_
-                  [ HH.text $ show $ state.scale * 10
+                  [ HH.text $ toFixed state.scale
                   , HH.text "%"
                   ]
               , HH.p_
@@ -157,7 +158,7 @@ appRoot =
                   { dragStart: DragStart
                   , addCommand: AddCommand
                   }
-                  (toNumber state.scale / 10.0)
+                  (state.scale / 100.0)
                   state
               ]
           , HH.div
@@ -194,11 +195,26 @@ appRoot =
                 (toNumber <$> (clientPos $ e # toMouseEvent))
                   - Vec2 { x: canvasRect.left, y: canvasRect.top }
 
-              newScale = clamp 1 100 $ scale - (floor $ deltaY e / 100.0)
+              isEnlarge = (sign $ deltaY e) == -1.0
+
+              isNormal = if isEnlarge then scale >= 100.0 else scale > 100.0
+
+              rate scale = if (floor scale `mod` 3 == 0) == (isNormal == isEnlarge) then 4.0 / 3.0 else 3.0 / 2.0
+
+              newScale =
+                clamp (100.0 / 96.0) 12800.0
+                  if isNormal then
+                    scale * (rate scale `pow` (deltaY e / -100.0))
+                  else
+                    let
+                      scaleRate = rate (200.0 / scale) `pow` (deltaY e / -100.0)
+                    in
+                      -- HACK: `scale * scaleRate`と同じだけど謎に誤差が出てバグるので謎の方法で誤差を抑える
+                      200.0 / ((200.0 / scale) / scaleRate)
 
               deltaTranslate = offset - ((*) scaleRate <$> offset)
                 where
-                scaleRate = (newScale # toNumber) / (scale # toNumber)
+                scaleRate = newScale / scale
             H.modify_ _ { scale = newScale, translate = translate + deltaTranslate }
     SetRefImage file -> do
       { refImage } <- H.get

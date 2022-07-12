@@ -113,6 +113,7 @@
     @extend %abs0;
   }
   .ref-image {
+    image-rendering: pixelated;
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;

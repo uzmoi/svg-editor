@@ -1,69 +1,34 @@
 module SvgEditor.View.NumberInput
-  ( Slot
-  , numberInput
+  ( numberInput
   ) where
 
 import Prelude
 import Data.Number (fromString)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (isNothing)
 import Effect.Aff (Aff)
-import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Type.Proxy (Proxy(..))
+import Halogen.HTML.Properties.ARIA as ARIA
+import SvgEditor.View.InputControl (inputControl, inputControlActions, Slot)
 
-type Slot
-  = ( numberInput :: forall query. H.Slot query Number String )
-
-type Param
-  = { key :: String, x :: Number }
-
-data Action
-  = Focus
-  | Blur
-  | Input String
-  | Receive Param
-
-_numberInput = Proxy :: Proxy "numberInput"
-
-numberInput :: forall a. String -> Number -> (Number -> a) -> HH.ComponentHTML a Slot Aff
-numberInput key x = HH.slot _numberInput key numberInputComponent { key, x }
-
-numberInputComponent :: forall query. H.Component query Param Number Aff
-numberInputComponent =
-  H.mkComponent
-    { initialState
+numberInput :: forall a. String -> Number -> (Number -> a) -> HH.ComponentHTML a (Slot Number) Aff
+numberInput key value onChange =
+  inputControl key
+    { value: value
+    , format: show
+    , parse: fromString
     , render
-    , eval:
-        H.mkEval
-          $ H.defaultEval
-              { handleAction = handleAction
-              , receive = Just <<< Receive
-              }
     }
+    onChange
   where
-  initialState { key, x } = { id: key, value: show x, inputValue: x, focus: false }
-
-  render { id, value } =
+  render string =
     HH.input
-      [ HP.id id
-      , HP.value value
-      , HE.onValueInput Input
-      , HE.onFocus \_ -> Focus
-      , HE.onBlur \_ -> Blur
+      [ HP.id key
+      , HP.value string
+      , HE.onValueInput inputControlActions.change
+      , HE.onFocus \_ -> inputControlActions.focus
+      , HE.onBlur \_ -> inputControlActions.blur
       , HP.class_ $ HH.ClassName "input"
+      , ARIA.invalid $ show $ fromString string # isNothing
       ]
-
-  handleAction = case _ of
-    Focus -> H.modify_ _ { focus = true }
-    Blur -> H.modify_ \state -> state { focus = false, value = show state.inputValue }
-    Input value -> do
-      H.modify_ _ { value = value }
-      fromString value # maybe (pure unit) H.raise
-    Receive { key, x } ->
-      H.modify_ \state@{ focus } ->
-        if focus then
-          state { id = key, inputValue = x }
-        else
-          state { id = key, inputValue = x, value = show x }

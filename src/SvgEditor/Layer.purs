@@ -26,14 +26,14 @@ type Layer
 
 -- Fill
 type Fill
-  = { color :: String
+  = { paint :: String
     , opacity :: Number
     , rule :: FillRule
     }
 
 defaultFill :: Fill
 defaultFill =
-  { color: "black"
+  { paint: "black"
   , opacity: 1.0
   , rule: NonZero
   }
@@ -54,7 +54,7 @@ instance showFillRule :: Show FillRule where
 
 -- Stroke
 type Stroke
-  = { color :: String
+  = { paint :: String
     , opacity :: Number
     , width :: Number
     , dashOffset :: Number
@@ -66,7 +66,7 @@ type Stroke
 
 defaultStroke :: Stroke
 defaultStroke =
-  { color: "black"
+  { paint: "none"
   , opacity: 1.0
   , width: 1.0
   , dashOffset: 0.0

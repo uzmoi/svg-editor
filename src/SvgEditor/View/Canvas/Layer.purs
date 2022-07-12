@@ -24,10 +24,10 @@ svgLayer { drawPath, fill, stroke } =
   HSE.path
     $ catMaybes
         [ Just $ HSA.d (drawPath # map toHalogenPathCommand)
-        , fillAttr _.color # map (HSA.Named >>> HSA.fill)
+        , fillAttr _.paint # map (HSA.Named >>> HSA.fill)
         , fillAttr _.opacity # map HSA.fillOpacity
         , fillAttr _.rule # map fillRule
-        , strokeAttr _.color # map (HSA.Named >>> HSA.stroke)
+        , strokeAttr _.paint # map (HSA.Named >>> HSA.stroke)
         , strokeAttr _.opacity # map strokeOpacity
         , strokeAttr _.width # map HSA.strokeWidth
         , strokeAttr _.dashOffset # map strokeDashOffset
@@ -38,17 +38,10 @@ svgLayer { drawPath, fill, stroke } =
         ]
   where
   fillAttr :: forall a. Eq a => (Fill -> a) -> Maybe a
-  fillAttr = justIfNotDefault defaultFill fill
+  fillAttr f = justIfNotDefault (f defaultFill) (f fill)
 
   strokeAttr :: forall a. Eq a => (Stroke -> a) -> Maybe a
-  strokeAttr = justIfNotDefault defaultStroke stroke
+  strokeAttr f = justIfNotDefault (f defaultStroke) (f stroke)
 
-justIfNotDefault :: forall a b. Eq b => a -> a -> (a -> b) -> Maybe b
-justIfNotDefault default value f =
-  let
-    value' = f value
-  in
-    if f default == value' then
-      Nothing
-    else
-      Just value'
+justIfNotDefault :: forall a. Eq a => a -> a -> Maybe a
+justIfNotDefault default value = if default == value then Nothing else Just value

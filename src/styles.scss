@@ -3,7 +3,9 @@
   #app {
     --bg-primary: #eee;
     --bg-secondary: #ddd;
+    --accent: #88d;
     --text: #333;
+    --error: #d44;
   }
 }
 
@@ -11,7 +13,9 @@
   #app {
     --bg-primary: #333;
     --bg-secondary: #222;
+    --accent: #448;
     --text: #eee;
+    --error: #c44;
   }
 }
 
@@ -20,46 +24,114 @@
   overflow: hidden;
   color: var(--text);
   background-color: var(--bg-secondary);
+  font-family: "Noto Sans JP", sans-serif;
 }
 
 .root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  z-index: 1001;
+  user-select: none;
+  background-color: var(--bg-primary);
+  h1 {
+    margin: 0.3em;
+    font-size: 1.5em;
+  }
+  .menu-bar {
+    display: flex;
+    font-size: 0.9em;
+    align-items: center;
+    > * {
+      margin: 0.2em;
+    }
+    > * + * {
+      margin-left: 0.4em;
+    }
+  }
+  label {
+    margin-left: 0.4em;
+    input[type="radio"] {
+      display: none;
+    }
+    span {
+      display: inline-block;
+      width: 1.8em;
+      height: 1.8em;
+      text-align: center;
+      border-radius: 0.4em;
+      background-color: var(--bg-secondary);
+      &.radio-selected {
+        background-color: var(--accent);
+      }
+    }
+  }
+}
+
+.main {
   display: flex;
   height: 100%;
 }
 
 .center-panel {
   flex-grow: 1;
-  position: relative;
+}
+
+.transparent-checkered {
+  $check: linear-gradient(45deg,#fff 25%,transparent 25% 75%,#fff 75%);
+  --checker-size: 1em;
+  background-image: $check, $check;
+  background-position: 0 0, calc(var(--checker-size) / 2) calc(var(--checker-size) / 2);
+  background-size: var(--checker-size) var(--checker-size);
+  background-color: #ddd;
 }
 
 .canvas-container {
+  @extend .transparent-checkered;
   position: relative;
-  background-color: #333;
+  transform-origin: 0 0;
 }
 
 .canvas-container svg {
   vertical-align: top;
 }
 
-.canvas-container .overlay {
+%abs0 {
   position: absolute;
   top: 0;
   left: 0;
-  overflow: visible;
+  bottom: 0;
+  right: 0;
 }
 
-.center-panel-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--bg-primary);
-  p {
-    display: inline-block;
-    padding-top: 0.1em;
-    padding-bottom: 0.1em;
-    padding-left: 0.4em;
-    padding-right: 0.4em;
+.canvas-container .ref-image-container {
+  overflow: hidden;
+  &, .ref-image {
+    @extend %abs0;
+  }
+  .ref-image {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    &[aria-hidden="true"] {
+      visibility: hidden;
+    }
+  }
+}
+
+.canvas-container .overlay {
+  @extend %abs0;
+  overflow: visible;
+  circle:hover {
+    cursor: pointer;
+    fill: var(--accent);
+  }
+  path:hover {
+    cursor: pointer;
+    stroke: var(--accent);
   }
 }
 
@@ -75,8 +147,7 @@
 }
 
 .layer-list {
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
+  user-select: none;
 }
 
 .layer-list > button {
@@ -88,20 +159,47 @@
 
 .layer-list ul li {
   &:hover {
-    background-color: var(--bg-secondary);
+    background-color: var(--accent);
   }
-  div p {
-    padding: 0.4em;
-    cursor: pointer;
-    display: inline-block;
-  }
-  div.hidden-layer p {
-    color: gray;
+  div {
+    padding: 0.2em;
+    p {
+      min-width: 1em;
+      padding: 0.3em;
+      cursor: pointer;
+      display: inline-block;
+    }
+    &.hidden-layer {
+      color: gray;
+    }
+    &.selected {
+      background-color: var(--accent);
+    }
   }
 }
 
 .layer-info {
-  padding: 1em;
+  user-select: none;
+  padding: 0.8em;
+  .layer-name-input {
+    padding: 0.3em;
+    width: 100%;
+    background-color: var(--bg-primary);
+    color: var(--text);
+    font-size: 1.1em;
+    outline: none;
+    border: 0;
+    border-bottom: 2px solid var(--text);
+    transition: 0.2s;
+    &:focus {
+      border-bottom-color: var(--accent);
+    }
+  }
+  h3 {
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+    text-align: center;
+  }
   .style-input {
     display: flex;
     justify-content: space-between;
@@ -127,8 +225,8 @@
   border-radius: 0.1em;
   background-color: var(--bg-secondary);
   color: var(--text);
-}
-
-.selected {
-  background-color: var(--bg-secondary);
+  outline-color: var(--accent);
+  &[aria-invalid="true"] {
+    outline-color: var(--error);
+  }
 }

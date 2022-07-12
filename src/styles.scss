@@ -80,9 +80,18 @@
   flex-grow: 1;
 }
 
+.transparent-checkered {
+  $check: linear-gradient(45deg,#fff 25%,transparent 25% 75%,#fff 75%);
+  --checker-size: 1em;
+  background-image: $check, $check;
+  background-position: 0 0, calc(var(--checker-size) / 2) calc(var(--checker-size) / 2);
+  background-size: var(--checker-size) var(--checker-size);
+  background-color: #ddd;
+}
+
 .canvas-container {
+  @extend .transparent-checkered;
   position: relative;
-  background-color: var(--bg-primary);
   transform-origin: 0 0;
 }
 

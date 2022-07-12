@@ -67,7 +67,8 @@ svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
-    , HP.style $ transform translate scale
+    , HP.style $ "--checker-size:" <> show (size * 80.0) <> "px;"
+        <> transform translate scale
     ]
     [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
     , HH.div

@@ -7,6 +7,7 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
 import Data.Number (pow, sign)
 import Data.Number.Format (toStringWith, fixed)
+import Data.MediaType (MediaType(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -17,6 +18,7 @@ import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (WheelEvent, toMouseEvent, deltaY)
 import Web.File.File (File, toBlob)
 import Web.File.Url (createObjectURL, revokeObjectURL)
+import DOM.HTML.Indexed.InputAcceptType (mediaType)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
@@ -125,6 +127,7 @@ appRoot =
                       ]
               , HH.input
                   [ HP.type_ HP.InputFile
+                  , HP.accept $ mediaType $ MediaType "image/*"
                   , HE.onFileUpload $ head >>> maybe NOOP SetRefImage
                   ]
               , HH.div_

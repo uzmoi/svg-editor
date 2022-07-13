@@ -2,6 +2,7 @@ module SvgEditor.View.Root (appRoot) where
 
 import Prelude
 import Data.Tuple (Tuple(..))
+import Data.List (List(..), uncons, null, (:))
 import Data.Array (filter, find, insertAt, updateAt, head)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
@@ -30,7 +31,9 @@ import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
-  = Scale WheelEvent
+  = Undo
+  | Redo
+  | Scale WheelEvent
   | SetRefImage File
   | ModifyRefImage (RefImage -> RefImage)
   | AddLayer
@@ -67,6 +70,9 @@ radio id xs print value f =
               [ HH.text $ print x ]
           ]
 
+initWithHistory :: forall a. a -> { past :: List a, future :: List a, present :: a }
+initWithHistory present = { past: Nil, future: Nil, present }
+
 appRoot :: forall query message. H.Component query Unit message Aff
 appRoot =
   H.mkComponent
@@ -81,14 +87,18 @@ appRoot =
     }
   where
   initialState _ =
-    { canvas:
-        { viewBox:
-            { top: 0.0
-            , bottom: 100.0
-            , left: 0.0
-            , right: 100.0
-            }
-        }
+    { svg:
+        initWithHistory
+          { canvas:
+              { viewBox:
+                  { top: 0.0
+                  , bottom: 100.0
+                  , left: 0.0
+                  , right: 100.0
+                  }
+              }
+          , layers: []
+          }
     , scale: 100.0
     , translate: zero
     , refImage:
@@ -98,7 +108,6 @@ appRoot =
         , opacity: 0.5
         , show: true
         }
-    , layers: []
     , selectedLayer: -1
     , cursorPos: zero
     , command: L
@@ -125,6 +134,16 @@ appRoot =
                       , HH.text ", "
                       , HH.text $ toFixed y
                       ]
+              , HH.button
+                  [ HE.onClick \_ -> Undo
+                  , HP.disabled $ null state.svg.past
+                  ]
+                  [ HH.text "undo" ]
+              , HH.button
+                  [ HE.onClick \_ -> Redo
+                  , HP.disabled $ null state.svg.future
+                  ]
+                  [ HH.text "redo" ]
               , HH.input
                   [ HP.type_ HP.InputFile
                   , HP.accept $ mediaType $ MediaType "image/*"
@@ -163,6 +182,7 @@ appRoot =
                   }
                   (state.scale / 100.0)
                   state
+                  state.svg.present
               ]
           , HH.div
               [ HP.class_ $ HH.ClassName "right-panel" ]
@@ -171,9 +191,9 @@ appRoot =
                   , selectLayer: SelectLayer
                   , editLayer: EditLayer
                   }
-                  state.layers
+                  state.svg.present.layers
                   state.selectedLayer
-              , state.layers # find (_.id >>> (==) state.selectedLayer)
+              , state.svg.present.layers # find (_.id >>> (==) state.selectedLayer)
                   # ( maybe (HH.div_ [])
                         $ layerInfo
                             { editLayer: EditSelectedLayer
@@ -187,7 +207,25 @@ appRoot =
 
   clientPos e = Vec2 { x: e # clientX, y: e # clientY }
 
+  pushHistory f state = { past: state.present : state.past, future: Nil, present: f state.present }
+
+  modifySvg f state = state { svg = f state.svg }
+
+  modifyLayers f = modifySvg $ pushHistory \state -> state { layers = f state.layers }
+
   handleAction = case _ of
+    Undo ->
+      H.modify_
+        $ modifySvg \state ->
+            uncons state.past
+              # maybe state \{ head, tail } ->
+                  { past: tail, future: state.present : state.future, present: head }
+    Redo ->
+      H.modify_
+        $ modifySvg \state ->
+            uncons state.future
+              # maybe state \{ head, tail } ->
+                  { past: state.present : state.past, future: tail, present: head }
     Scale e -> do
       { scale, translate } <- H.get
       H.getHTMLElementRef canvasContainerRef
@@ -242,13 +280,13 @@ appRoot =
           , fill: defaultFill
           , stroke: defaultStroke
           }
-      H.modify_ \state -> state { layers = state.layers <> [ newLayer ] }
-    DeleteLayer ->
-      H.modify_ \state@{ selectedLayer } ->
-        state { layers = state.layers # filter (_.id >>> (/=) selectedLayer) }
+      H.modify_ $ modifyLayers (_ <> [ newLayer ])
+    DeleteLayer -> do
+      { selectedLayer } <- H.get
+      H.modify_ $ modifyLayers $ filter $ _.id >>> (/=) selectedLayer
     EditLayer id f ->
-      H.modify_ \state ->
-        state { layers = state.layers # map \layer -> if layer.id == id then f layer else layer }
+      H.modify_ $ modifyLayers
+        $ map \layer -> if layer.id == id then f layer else layer
     SelectLayer id ->
       H.modify_ \state ->
         state { selectedLayer = if state.selectedLayer == id then -1 else id }
@@ -258,17 +296,17 @@ appRoot =
     SelectCommand commandType -> do
       H.modify_ _ { command = commandType }
     AddCommand i -> do
-      { layers, selectedLayer, cursorPos, command } <- H.get
+      { svg, selectedLayer, cursorPos, command } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            layer <- layers # find (_.id >>> (==) selectedLayer)
+            layer <- svg.present.layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # insertAt i (pathCommand command cursorPos)
             Just _ { drawPath = drawPath }
     EditCommand i j -> do
-      { layers, selectedLayer } <- H.get
+      { svg, selectedLayer } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            layer <- layers # find (_.id >>> (==) selectedLayer)
+            layer <- svg.present.layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # updateAt i j
             Just _ { drawPath = drawPath }
     TranslateStart e -> case e # button of
@@ -286,9 +324,11 @@ appRoot =
       H.getHTMLElementRef canvasContainerRef
         >>= maybe (pure unit) \canvasContainerEl -> do
             canvasRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
-            { canvas: { viewBox }, dragging } <- H.get
+            { svg, dragging } <- H.get
             let
               offset = (toNumber <$> clientPos e) - Vec2 { x: canvasRect.left, y: canvasRect.top }
+
+              viewBox = svg.present.canvas.viewBox
 
               canvasRate =
                 Vec2

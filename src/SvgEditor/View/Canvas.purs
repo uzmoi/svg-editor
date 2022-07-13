@@ -56,14 +56,15 @@ svgCanvas ::
   } ->
   Number ->
   { translate :: Vec2 Number
-  , canvas :: Canvas
   , refImage :: RefImage
-  , layers :: Array Layer
   , selectedLayer :: Int
   | c
   } ->
+  { canvas :: Canvas
+  , layers :: Array Layer
+  } ->
   HH.HTML a b
-svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
+svgCanvas actions scale { translate, refImage, selectedLayer } { canvas, layers } =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"

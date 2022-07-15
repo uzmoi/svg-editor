@@ -8,6 +8,7 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Int (toNumber, floor)
 import Data.Number (pow, sign)
 import Data.Number.Format (toStringWith, fixed)
+import Data.String (toLower)
 import Data.MediaType (MediaType(..))
 import Halogen as H
 import Halogen.HTML as HH
@@ -18,8 +19,10 @@ import Web.HTML (window)
 import Web.HTML.Window as Window
 import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.HTMLElement (toElement)
+import Web.DOM.Node (nodeName, fromEventTarget)
 import Web.DOM.Element (getBoundingClientRect)
-import Web.UIEvent.KeyboardEvent (KeyboardEvent, key, ctrlKey, fromEvent)
+import Web.Event.Event (target)
+import Web.UIEvent.KeyboardEvent (KeyboardEvent, key, ctrlKey, fromEvent, toEvent)
 import Web.UIEvent.KeyboardEvent.EventTypes (keydown)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (WheelEvent, toMouseEvent, deltaY)
@@ -225,6 +228,12 @@ appRoot =
 
   modifyLayers' f = modifySvg $ updateHistory \state -> state { layers = f state.layers }
 
+  isFormField node = case nodeName node # toLower of
+    "select" -> true
+    "textarea" -> true
+    "input" -> true
+    _ -> false
+
   handleAction = case _ of
     Init -> do
       document <- H.liftEffect $ Window.document =<< window
@@ -241,20 +250,21 @@ appRoot =
           , Close
           ]
       H.modify_ $ modifyLayers' (_ <> [ layer id drawPath ])
-    KeyDown e -> case key e of
-      "z"
-        | ctrlKey e -> handleAction Undo
-      "y"
-        | ctrlKey e -> handleAction Redo
-      "m" -> handleAction $ SelectCommand M
-      "l" -> handleAction $ SelectCommand L
-      "c" -> handleAction $ SelectCommand C
-      "s" -> handleAction $ SelectCommand S
-      "q" -> handleAction $ SelectCommand Q
-      "t" -> handleAction $ SelectCommand T
-      -- "a" -> handleAction $ SelectCommand A
-      "z" -> handleAction $ SelectCommand Z
-      _ -> pure unit
+    KeyDown e ->
+      unless (e # toEvent # target >>= fromEventTarget # maybe true isFormField) case key e of
+        "z"
+          | ctrlKey e -> handleAction Undo
+        "y"
+          | ctrlKey e -> handleAction Redo
+        "m" -> handleAction $ SelectCommand M
+        "l" -> handleAction $ SelectCommand L
+        "c" -> handleAction $ SelectCommand C
+        "s" -> handleAction $ SelectCommand S
+        "q" -> handleAction $ SelectCommand Q
+        "t" -> handleAction $ SelectCommand T
+        -- "a" -> handleAction $ SelectCommand A
+        "z" -> handleAction $ SelectCommand Z
+        _ -> pure unit
     Undo ->
       H.modify_
         $ modifySvg \state ->

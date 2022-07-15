@@ -246,6 +246,14 @@ appRoot =
         | ctrlKey e -> handleAction Undo
       "y"
         | ctrlKey e -> handleAction Redo
+      "m" -> handleAction $ SelectCommand M
+      "l" -> handleAction $ SelectCommand L
+      "c" -> handleAction $ SelectCommand C
+      "s" -> handleAction $ SelectCommand S
+      "q" -> handleAction $ SelectCommand Q
+      "t" -> handleAction $ SelectCommand T
+      -- "a" -> handleAction $ SelectCommand A
+      "z" -> handleAction $ SelectCommand Z
       _ -> pure unit
     Undo ->
       H.modify_

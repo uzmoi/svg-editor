@@ -311,7 +311,7 @@ appRoot =
       { selectedLayer } <- H.get
       H.modify_ $ modifyLayers $ filter $ _.id >>> (/=) selectedLayer
     EditLayer id f ->
-      H.modify_ $ modifyLayers
+      H.modify_ $ modifyLayers'
         $ map \layer -> if layer.id == id then f layer else layer
     SelectLayer id ->
       H.modify_ \state ->
@@ -340,7 +340,9 @@ appRoot =
         { translate } <- H.get
         H.modify_ _ { translating = Just $ translate - (toNumber <$> clientPos e) }
       _ -> pure unit
-    DragStart i j -> H.modify_ _ { dragging = Just $ Tuple i j }
+    DragStart i j -> do
+      H.modify_ $ modifyLayers identity
+      H.modify_ _ { dragging = Just $ Tuple i j }
     DragEnd -> H.modify_ _ { dragging = Nothing, translating = Nothing }
     Drag e -> do
       { translating } <- H.get

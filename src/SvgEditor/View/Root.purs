@@ -13,8 +13,14 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Halogen.Query.Event (eventListener)
+import Web.HTML (window)
+import Web.HTML.Window as Window
+import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.HTMLElement (toElement)
 import Web.DOM.Element (getBoundingClientRect)
+import Web.UIEvent.KeyboardEvent (KeyboardEvent, key, ctrlKey, fromEvent)
+import Web.UIEvent.KeyboardEvent.EventTypes (keydown)
 import Web.UIEvent.MouseEvent (MouseEvent, clientX, clientY, button)
 import Web.UIEvent.WheelEvent (WheelEvent, toMouseEvent, deltaY)
 import Web.File.File (File, toBlob)
@@ -31,7 +37,9 @@ import SvgEditor.View.LayerList (layerList)
 import SvgEditor.View.LayerInfo (layerInfo)
 
 data Action
-  = Undo
+  = Init
+  | KeyDown KeyboardEvent
+  | Undo
   | Redo
   | Scale WheelEvent
   | SetRefImage File
@@ -82,7 +90,7 @@ appRoot =
         H.mkEval
           $ H.defaultEval
               { handleAction = handleAction
-              , initialize = Just AddLayer
+              , initialize = Just Init
               }
     }
   where
@@ -214,6 +222,19 @@ appRoot =
   modifyLayers f = modifySvg $ pushHistory \state -> state { layers = f state.layers }
 
   handleAction = case _ of
+    Init -> do
+      document <- H.liftEffect $ Window.document =<< window
+      H.subscribe' \_ ->
+        eventListener keydown
+          (HTMLDocument.toEventTarget document)
+          (map KeyDown <<< fromEvent)
+      handleAction AddLayer
+    KeyDown e -> case key e of
+      "z"
+        | ctrlKey e -> handleAction Undo
+      "y"
+        | ctrlKey e -> handleAction Redo
+      _ -> pure unit
     Undo ->
       H.modify_
         $ modifySvg \state ->

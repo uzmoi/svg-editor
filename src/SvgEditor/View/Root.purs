@@ -217,9 +217,13 @@ appRoot =
 
   pushHistory f state = { past: state.present : state.past, future: Nil, present: f state.present }
 
+  updateHistory f state = { past: state.past, future: Nil, present: f state.present }
+
   modifySvg f state = state { svg = f state.svg }
 
   modifyLayers f = modifySvg $ pushHistory \state -> state { layers = f state.layers }
+
+  modifyLayers' f = modifySvg $ updateHistory \state -> state { layers = f state.layers }
 
   handleAction = case _ of
     Init -> do
@@ -228,7 +232,15 @@ appRoot =
         eventListener keydown
           (HTMLDocument.toEventTarget document)
           (map KeyDown <<< fromEvent)
-      handleAction AddLayer
+      -- AddLayer
+      id <- H.liftEffect $ randomInt 0 0x10000000
+      let
+        drawPath =
+          [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
+          , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
+          , Close
+          ]
+      H.modify_ $ modifyLayers' (_ <> [ layer id drawPath ])
     KeyDown e -> case key e of
       "z"
         | ctrlKey e -> handleAction Undo

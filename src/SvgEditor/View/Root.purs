@@ -84,6 +84,11 @@ radio id xs print value f =
 initWithHistory :: forall a. a -> { past :: List a, future :: List a, present :: a }
 initWithHistory present = { past: Nil, future: Nil, present }
 
+data Dragging
+  = DraggingCanvas (Vec2 Number)
+  | DraggingPoint Int (Vec2 Number -> PathCommand)
+  | NotDragging
+
 appRoot :: forall query message. H.Component query Unit message Aff
 appRoot =
   H.mkComponent
@@ -122,8 +127,7 @@ appRoot =
     , selectedLayer: -1
     , cursorPos: zero
     , command: L
-    , dragging: Nothing
-    , translating: Nothing
+    , dragging: NotDragging
     }
 
   render state =
@@ -356,21 +360,17 @@ appRoot =
     TranslateStart e -> case e # button of
       1 -> do
         { translate } <- H.get
-        H.modify_ _ { translating = Just $ translate - (toNumber <$> clientPos e) }
+        H.modify_ _ { dragging = DraggingCanvas $ translate - (toNumber <$> clientPos e) }
       _ -> pure unit
     DragStart i j -> do
       H.modify_ $ modifyLayers identity
-      H.modify_ _ { dragging = Just $ Tuple i j }
-    DragEnd -> H.modify_ _ { dragging = Nothing, translating = Nothing }
+      H.modify_ _ { dragging = DraggingPoint i j }
+    DragEnd -> H.modify_ _ { dragging = NotDragging }
     Drag e -> do
-      { translating } <- H.get
-      translating
-        # maybe (pure unit) \startTranslate ->
-            H.modify_ _ { translate = startTranslate + (toNumber <$> clientPos e) }
       H.getHTMLElementRef canvasContainerRef
         >>= maybe (pure unit) \canvasContainerEl -> do
             canvasRect <- H.liftEffect $ getBoundingClientRect $ toElement canvasContainerEl
-            { svg, dragging } <- H.get
+            { svg } <- H.get
             let
               offset = (toNumber <$> clientPos e) - Vec2 { x: canvasRect.left, y: canvasRect.top }
 
@@ -381,6 +381,12 @@ appRoot =
                   { x: (viewBox.right - viewBox.left) / canvasRect.width
                   , y: (viewBox.bottom - viewBox.top) / canvasRect.height
                   }
-            { cursorPos } <- H.modify _ { cursorPos = offset * canvasRate }
-            handleAction $ dragging # maybe NOOP \(Tuple i j) -> EditCommand i $ j cursorPos
+            H.modify_ _ { cursorPos = offset * canvasRate }
+      { dragging, cursorPos } <- H.get
+      case dragging of
+        DraggingCanvas startTranslate ->
+          H.modify_
+            _ { translate = startTranslate + (toNumber <$> clientPos e) }
+        DraggingPoint i j -> handleAction $ EditCommand i $ j cursorPos
+        NotDragging -> pure unit
     NOOP -> pure unit

@@ -6,6 +6,7 @@ module SvgEditor.Layer
   , defaultFill
   , defaultStroke
   , fillRule
+  , layer
   ) where
 
 import Prelude
@@ -23,6 +24,15 @@ type Layer
     , fill :: Fill
     , stroke :: Stroke
     }
+
+layer id drawPath =
+  { id
+  , name: "Layer"
+  , show: true
+  , drawPath
+  , fill: defaultFill
+  , stroke: defaultStroke
+  }
 
 -- Fill
 type Fill

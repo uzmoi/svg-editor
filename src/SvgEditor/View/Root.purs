@@ -29,7 +29,7 @@ import DOM.HTML.Indexed.InputAcceptType (mediaType)
 import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
-import SvgEditor.Layer (Layer, defaultFill, defaultStroke)
+import SvgEditor.Layer (Layer, layer)
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
@@ -289,19 +289,12 @@ appRoot =
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
       let
-        newLayer =
-          { id
-          , name: "Layer"
-          , show: true
-          , drawPath:
-              [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
-              , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
-              , Close
-              ]
-          , fill: defaultFill
-          , stroke: defaultStroke
-          }
-      H.modify_ $ modifyLayers (_ <> [ newLayer ])
+        drawPath =
+          [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
+          , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
+          , Close
+          ]
+      H.modify_ $ modifyLayers (_ <> [ layer id drawPath ])
     DeleteLayer -> do
       { selectedLayer } <- H.get
       H.modify_ $ modifyLayers $ filter $ _.id >>> (/=) selectedLayer

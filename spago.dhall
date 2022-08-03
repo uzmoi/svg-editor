@@ -19,6 +19,7 @@
   , "partial"
   , "prelude"
   , "random"
+  , "strings"
   , "transformers"
   , "tuples"
   , "unsafe-coerce"

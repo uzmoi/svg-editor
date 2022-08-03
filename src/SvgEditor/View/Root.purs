@@ -4,7 +4,7 @@ import Prelude
 import Data.Array (filter, find, insertAt, updateAt, head)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Int (toNumber, floor)
-import Data.Number (pow, sign)
+import Data.Number (sign)
 import Data.Number.Format (toStringWith, fixed)
 import Data.String (toLower)
 import Data.MediaType (MediaType(..))
@@ -230,6 +230,26 @@ appRoot =
     "input" -> true
     _ -> false
 
+  scaleChange isEnlarge scale =
+    let
+      isNormal = if isEnlarge then scale >= 100.0 else scale > 100.0
+
+      -- 拡大率100%以下は逆数にする
+      -- ただし66.666...とかが少数でmod 3できないので200
+      x = floor if isNormal then scale else 200.0 / scale
+
+      rate =
+        if (x `mod` 3 == 0) == (isNormal == isEnlarge) then
+          4.0 / 3.0
+        else
+          3.0 / 2.0
+
+      op = if isEnlarge then (*) else (/)
+
+      newScale = scale `op` rate
+    in
+      clamp (100.0 / 96.0) 12800.0 newScale
+
   handleAction = case _ of
     Init -> do
       document <- H.liftEffect $ Window.document =<< window
@@ -275,20 +295,7 @@ appRoot =
 
               isEnlarge = (sign $ deltaY e) == -1.0
 
-              isNormal = if isEnlarge then scale >= 100.0 else scale > 100.0
-
-              rate scale = if (floor scale `mod` 3 == 0) == (isNormal == isEnlarge) then 4.0 / 3.0 else 3.0 / 2.0
-
-              newScale =
-                clamp (100.0 / 96.0) 12800.0
-                  if isNormal then
-                    scale * (rate scale `pow` (deltaY e / -100.0))
-                  else
-                    let
-                      scaleRate = rate (200.0 / scale) `pow` (deltaY e / -100.0)
-                    in
-                      -- HACK: `scale * scaleRate`と同じだけど謎に誤差が出てバグるので謎の方法で誤差を抑える
-                      200.0 / ((200.0 / scale) / scaleRate)
+              newScale = scaleChange isEnlarge scale
 
               deltaTranslate = offset - ((*) scaleRate <$> offset)
                 where

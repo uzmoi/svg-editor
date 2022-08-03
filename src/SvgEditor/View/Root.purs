@@ -36,7 +36,7 @@ import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pat
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
-import SvgEditor.View.LayerInfo (layerInfo)
+import SvgEditor.View.LayerInfo (layerInfo, LayerInfoTab(..))
 
 data Action
   = Init
@@ -50,6 +50,7 @@ data Action
   | DeleteLayer
   | EditLayer Int (Layer -> Layer)
   | SelectLayer Int
+  | SelectTab LayerInfoTab
   | EditSelectedLayer (Layer -> Layer)
   | SelectCommand PathCommandType
   | AddCommand Int
@@ -195,27 +196,28 @@ appRoot =
                   state
                   $ History.present state.svg
               ]
-          , let
-              selectedLayerId = state.selected # maybe (-1) _.layerId
-            in
-              HH.div
-                [ HP.class_ $ HH.ClassName "right-panel" ]
-                [ layerList
-                    { addLayer: AddLayer
-                    , selectLayer: SelectLayer
-                    , editLayer: EditLayer
-                    }
-                    (History.present state.svg).layers
-                    selectedLayerId
-                , (History.present state.svg).layers # find (_.id >>> (==) selectedLayerId)
-                    # ( maybe (HH.div_ [])
-                          $ layerInfo
-                              { editLayer: EditSelectedLayer
-                              , deleteLayer: DeleteLayer
-                              , editCommand: EditCommand
-                              }
-                      )
-                ]
+          , HH.div
+              [ HP.class_ $ HH.ClassName "right-panel" ]
+              [ layerList
+                  { addLayer: AddLayer
+                  , selectLayer: SelectLayer
+                  , editLayer: EditLayer
+                  }
+                  (History.present state.svg).layers
+                  (state.selected # maybe (-1) _.layerId)
+              , fromMaybe (HH.div_ []) do
+                  selected <- state.selected
+                  layer <- (History.present state.svg).layers # find (_.id >>> (==) selected.layerId)
+                  pure
+                    $ layerInfo
+                        { editLayer: EditSelectedLayer
+                        , deleteLayer: DeleteLayer
+                        , editCommand: EditCommand
+                        , selectTab: SelectTab
+                        }
+                        layer
+                        selected
+              ]
           ]
       ]
 
@@ -336,7 +338,12 @@ appRoot =
           selected
             # maybe id \selected ->
                 if selected.layerId == id then -1 else id
-      H.modify_ _ { selected = Just { layerId: selectedLayerId } }
+      H.modify_ _ { selected = Just { layerId: selectedLayerId, tab: PathStylesTab } }
+    SelectTab tab -> do
+      { selected } <- H.get
+      selected
+        # maybe (pure unit) \selected ->
+            H.modify_ _ { selected = Just $ selected { tab = tab } }
     EditSelectedLayer f -> do
       { selected } <- H.get
       selected

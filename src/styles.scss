@@ -211,6 +211,21 @@
       margin-left: 0;
     }
   }
+  label {
+    display: inline-block;
+    input[type="radio"][name="layer-info-tab"] {
+      display: none;
+    }
+    span {
+      display: inline-block;
+      padding: 0.4em;
+      line-height: 1;
+      background-color: var(--bg-secondary);
+      &.radio-selected {
+        background-color: var(--accent);
+      }
+    }
+  }
 }
 
 .draw-path-commands li > div > div {

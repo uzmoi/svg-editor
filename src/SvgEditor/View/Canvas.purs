@@ -50,14 +50,14 @@ transform translate scale =
     <> ("scale(" <> show scale <> ")")
 
 svgCanvas ::
-  forall a b c.
+  forall a b c d.
   { dragStart :: Int -> (Vec2 Number -> PathCommand) -> b
   , addCommand :: Int -> b
   } ->
   Number ->
   { translate :: Vec2 Number
   , refImage :: RefImage
-  , selected :: Maybe { layerId :: Int }
+  , selected :: Maybe { layerId :: Int | d }
   | c
   } ->
   { canvas :: Canvas

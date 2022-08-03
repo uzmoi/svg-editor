@@ -1,10 +1,8 @@
 module SvgEditor.View.Root (appRoot) where
 
 import Prelude
-import Data.Tuple (Tuple(..))
-import Data.List (List(..), uncons, null, (:))
 import Data.Array (filter, find, insertAt, updateAt, head)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Int (toNumber, floor)
 import Data.Number (pow, sign)
 import Data.Number.Format (toStringWith, fixed)
@@ -33,6 +31,7 @@ import Effect.Aff (Aff)
 import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, layer)
+import SvgEditor.History as History
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
@@ -81,9 +80,6 @@ radio id xs print value f =
               [ HH.text $ print x ]
           ]
 
-initWithHistory :: forall a. a -> { past :: List a, future :: List a, present :: a }
-initWithHistory present = { past: Nil, future: Nil, present }
-
 data Dragging
   = DraggingCanvas (Vec2 Number)
   | DraggingPoint Int (Vec2 Number -> PathCommand)
@@ -104,7 +100,7 @@ appRoot =
   where
   initialState _ =
     { svg:
-        initWithHistory
+        History.history
           { canvas:
               { viewBox:
                   { top: 0.0
@@ -151,12 +147,12 @@ appRoot =
                       ]
               , HH.button
                   [ HE.onClick \_ -> Undo
-                  , HP.disabled $ null state.svg.past
+                  , HP.disabled $ not $ History.canUndo state.svg
                   ]
                   [ HH.text "undo" ]
               , HH.button
                   [ HE.onClick \_ -> Redo
-                  , HP.disabled $ null state.svg.future
+                  , HP.disabled $ not $ History.canRedo state.svg
                   ]
                   [ HH.text "redo" ]
               , HH.input
@@ -197,7 +193,7 @@ appRoot =
                   }
                   (state.scale / 100.0)
                   state
-                  state.svg.present
+                  $ History.present state.svg
               ]
           , HH.div
               [ HP.class_ $ HH.ClassName "right-panel" ]
@@ -206,9 +202,9 @@ appRoot =
                   , selectLayer: SelectLayer
                   , editLayer: EditLayer
                   }
-                  state.svg.present.layers
+                  (History.present state.svg).layers
                   state.selectedLayer
-              , state.svg.present.layers # find (_.id >>> (==) state.selectedLayer)
+              , (History.present state.svg).layers # find (_.id >>> (==) state.selectedLayer)
                   # ( maybe (HH.div_ [])
                         $ layerInfo
                             { editLayer: EditSelectedLayer
@@ -222,15 +218,11 @@ appRoot =
 
   clientPos e = Vec2 { x: e # clientX, y: e # clientY }
 
-  pushHistory f state = { past: state.present : state.past, future: Nil, present: f state.present }
-
-  updateHistory f state = { past: state.past, future: Nil, present: f state.present }
-
   modifySvg f state = state { svg = f state.svg }
 
-  modifyLayers f = modifySvg $ pushHistory \state -> state { layers = f state.layers }
+  modifyLayers f = modifySvg $ History.next \state -> state { layers = f state.layers }
 
-  modifyLayers' f = modifySvg $ updateHistory \state -> state { layers = f state.layers }
+  modifyLayers' f = modifySvg $ History.update \state -> state { layers = f state.layers }
 
   isFormField node = case nodeName node # toLower of
     "select" -> true
@@ -269,18 +261,8 @@ appRoot =
         -- "a" -> handleAction $ SelectCommand A
         "z" -> handleAction $ SelectCommand Z
         _ -> pure unit
-    Undo ->
-      H.modify_
-        $ modifySvg \state ->
-            uncons state.past
-              # maybe state \{ head, tail } ->
-                  { past: tail, future: state.present : state.future, present: head }
-    Redo ->
-      H.modify_
-        $ modifySvg \state ->
-            uncons state.future
-              # maybe state \{ head, tail } ->
-                  { past: state.present : state.past, future: tail, present: head }
+    Undo -> H.modify_ $ modifySvg \svg -> fromMaybe svg $ History.undo svg
+    Redo -> H.modify_ $ modifySvg \svg -> fromMaybe svg $ History.redo svg
     Scale e -> do
       { scale, translate } <- H.get
       H.getHTMLElementRef canvasContainerRef
@@ -347,14 +329,14 @@ appRoot =
       { svg, selectedLayer, cursorPos, command } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            layer <- svg.present.layers # find (_.id >>> (==) selectedLayer)
+            layer <- (History.present svg).layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # insertAt i (pathCommand command cursorPos)
             Just _ { drawPath = drawPath }
     EditCommand i j -> do
       { svg, selectedLayer } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            layer <- svg.present.layers # find (_.id >>> (==) selectedLayer)
+            layer <- (History.present svg).layers # find (_.id >>> (==) selectedLayer)
             drawPath <- layer.drawPath # updateAt i j
             Just _ { drawPath = drawPath }
     TranslateStart e -> case e # button of
@@ -374,7 +356,7 @@ appRoot =
             let
               offset = (toNumber <$> clientPos e) - Vec2 { x: canvasRect.left, y: canvasRect.top }
 
-              viewBox = svg.present.canvas.viewBox
+              viewBox = (History.present svg).canvas.viewBox
 
               canvasRate =
                 Vec2

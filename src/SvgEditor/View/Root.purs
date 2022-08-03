@@ -120,7 +120,7 @@ appRoot =
         , opacity: 0.5
         , show: true
         }
-    , selectedLayer: -1
+    , selected: Nothing
     , cursorPos: zero
     , command: L
     , dragging: NotDragging
@@ -195,24 +195,27 @@ appRoot =
                   state
                   $ History.present state.svg
               ]
-          , HH.div
-              [ HP.class_ $ HH.ClassName "right-panel" ]
-              [ layerList
-                  { addLayer: AddLayer
-                  , selectLayer: SelectLayer
-                  , editLayer: EditLayer
-                  }
-                  (History.present state.svg).layers
-                  state.selectedLayer
-              , (History.present state.svg).layers # find (_.id >>> (==) state.selectedLayer)
-                  # ( maybe (HH.div_ [])
-                        $ layerInfo
-                            { editLayer: EditSelectedLayer
-                            , deleteLayer: DeleteLayer
-                            , editCommand: EditCommand
-                            }
-                    )
-              ]
+          , let
+              selectedLayerId = state.selected # maybe (-1) _.layerId
+            in
+              HH.div
+                [ HP.class_ $ HH.ClassName "right-panel" ]
+                [ layerList
+                    { addLayer: AddLayer
+                    , selectLayer: SelectLayer
+                    , editLayer: EditLayer
+                    }
+                    (History.present state.svg).layers
+                    selectedLayerId
+                , (History.present state.svg).layers # find (_.id >>> (==) selectedLayerId)
+                    # ( maybe (HH.div_ [])
+                          $ layerInfo
+                              { editLayer: EditSelectedLayer
+                              , deleteLayer: DeleteLayer
+                              , editCommand: EditCommand
+                              }
+                      )
+                ]
           ]
       ]
 
@@ -319,31 +322,42 @@ appRoot =
           ]
       H.modify_ $ modifyLayers (_ <> [ layer id drawPath ])
     DeleteLayer -> do
-      { selectedLayer } <- H.get
-      H.modify_ $ modifyLayers $ filter $ _.id >>> (/=) selectedLayer
+      { selected } <- H.get
+      selected
+        # maybe (pure unit) \selected ->
+            H.modify_ $ modifyLayers $ filter $ _.id >>> (/=) selected.layerId
     EditLayer id f ->
       H.modify_ $ modifyLayers'
         $ map \layer -> if layer.id == id then f layer else layer
-    SelectLayer id ->
-      H.modify_ \state ->
-        state { selectedLayer = if state.selectedLayer == id then -1 else id }
+    SelectLayer id -> do
+      { selected } <- H.get
+      let
+        selectedLayerId =
+          selected
+            # maybe id \selected ->
+                if selected.layerId == id then -1 else id
+      H.modify_ _ { selected = Just { layerId: selectedLayerId } }
     EditSelectedLayer f -> do
-      { selectedLayer } <- H.get
-      handleAction $ EditLayer selectedLayer f
+      { selected } <- H.get
+      selected
+        # maybe (pure unit) \selected ->
+            handleAction $ EditLayer selected.layerId f
     SelectCommand commandType -> do
       H.modify_ _ { command = commandType }
     AddCommand i -> do
-      { svg, selectedLayer, cursorPos, command } <- H.get
+      { svg, selected, cursorPos, command } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            layer <- (History.present svg).layers # find (_.id >>> (==) selectedLayer)
+            selected <- selected
+            layer <- (History.present svg).layers # find (_.id >>> (==) selected.layerId)
             drawPath <- layer.drawPath # insertAt i (pathCommand command cursorPos)
             Just _ { drawPath = drawPath }
     EditCommand i j -> do
-      { svg, selectedLayer } <- H.get
+      { svg, selected } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            layer <- (History.present svg).layers # find (_.id >>> (==) selectedLayer)
+            selected <- selected
+            layer <- (History.present svg).layers # find (_.id >>> (==) selected.layerId)
             drawPath <- layer.drawPath # updateAt i j
             Just _ { drawPath = drawPath }
     TranslateStart e -> case e # button of

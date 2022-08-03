@@ -6,7 +6,7 @@ module SvgEditor.View.Canvas
 
 import Prelude
 import Data.Array (filter, find)
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe, maybe)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -57,14 +57,14 @@ svgCanvas ::
   Number ->
   { translate :: Vec2 Number
   , refImage :: RefImage
-  , selectedLayer :: Int
+  , selected :: Maybe { layerId :: Int }
   | c
   } ->
   { canvas :: Canvas
   , layers :: Array Layer
   } ->
   HH.HTML a b
-svgCanvas actions scale { translate, refImage, selectedLayer } { canvas, layers } =
+svgCanvas actions scale { translate, refImage, selected } { canvas, layers } =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
@@ -85,11 +85,13 @@ svgCanvas actions scale { translate, refImage, selectedLayer } { canvas, layers 
         ]
     , HSE.svg
         (canvasProps canvas <> [ class_ $ HH.ClassName "overlay" ])
-        ( layers # find (_.id >>> (==) selectedLayer)
+        ( layers # find (_.id >>> (==) selectedLayerId)
             # maybe [] \layer ->
                 overlayLines actions.addCommand size layer.drawPath
                   <> overlayPoints actions.dragStart size layer.drawPath
         )
     ]
   where
+  selectedLayerId = selected # maybe (-1) _.layerId
+
   size = 1.0 / scale

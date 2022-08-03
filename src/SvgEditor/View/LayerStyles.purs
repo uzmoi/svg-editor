@@ -39,9 +39,8 @@ layerStyles ::
   { editLayer :: (Layer -> Layer) -> a | b } ->
   Fill -> Stroke -> HH.ComponentHTML a (Slot Number) Aff
 layerStyles actions fill stroke =
-  HH.section_
-    [ HH.h3_ [ HH.text "path styles" ]
-    , stringInput'
+  HH.div_
+    [ stringInput'
         { name: "fill-paint"
         , value: fill.paint
         , onChange: \x -> _ { fill { paint = x } }

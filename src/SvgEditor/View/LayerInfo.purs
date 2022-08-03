@@ -55,25 +55,26 @@ layerInfo ::
 layerInfo actions { name, drawPath: drawPath', fill, stroke } { tab } =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]
-    [ HH.input
-        [ HP.value name
-        , HE.onValueInput \value -> actions.editLayer _ { name = value }
-        , HP.class_ $ HH.ClassName "layer-name-input"
+    [ HH.div [ HP.class_ $ HH.ClassName "layer-profile" ]
+        [ HH.input
+            [ HP.value name
+            , HE.onValueInput \value -> actions.editLayer _ { name = value }
+            , HP.class_ $ HH.ClassName "layer-name-input"
+            ]
+        , HH.button
+            [ HE.onClick \_ -> actions.deleteLayer ]
+            [ HH.text "delete layer" ]
         ]
-    , HH.button
-        [ HE.onClick \_ -> actions.deleteLayer ]
-        [ HH.text "delete layer" ]
     , HH.div_
         $ radio "layer-info-tab"
             [ PathStylesTab, PathCommandsTab ]
             printLayerInfoTab
             tab
             actions.selectTab
-    , case tab of
-        PathStylesTab -> layerStyles actions fill stroke
-        PathCommandsTab ->
-          HH.section_
-            [ HH.h3_ [ HH.text "path commands" ]
-            , drawPath { editCommand: actions.editCommand } drawPath'
-            ]
+    , HH.section
+        [ HP.class_ $ HH.ClassName "layer-info-tab-contents" ]
+        [ case tab of
+            PathStylesTab -> layerStyles actions fill stroke
+            PathCommandsTab -> drawPath { editCommand: actions.editCommand } drawPath'
+        ]
     ]

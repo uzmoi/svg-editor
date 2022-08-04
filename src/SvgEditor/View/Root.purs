@@ -33,6 +33,7 @@ import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, layer)
 import SvgEditor.History as History
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
+import SvgEditor.View.Radio (radio)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
 import SvgEditor.View.LayerList (layerList)
@@ -63,23 +64,6 @@ data Action
 
 toFixed :: Number -> String
 toFixed = toStringWith $ fixed 1
-
-radio :: forall a b x. Eq x => String -> Array x -> (x -> String) -> x -> (x -> b) -> Array (HH.HTML a b)
-radio id xs print value f =
-  xs
-    # map \x ->
-        HH.label_
-          [ HH.input
-              [ HP.type_ HP.InputRadio
-              , HP.name id
-              , HP.value $ print x
-              , HP.checked $ x == value
-              , HE.onValueChange \_ -> f x
-              ]
-          , HH.span
-              (if x == value then [ HP.class_ $ HH.ClassName "radio-selected" ] else [])
-              [ HH.text $ print x ]
-          ]
 
 data Dragging
   = DraggingCanvas (Vec2 Number)

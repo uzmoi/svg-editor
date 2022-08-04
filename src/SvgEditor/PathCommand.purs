@@ -1,14 +1,17 @@
 module SvgEditor.PathCommand
   ( PathCommand(..)
+  , PathCommandContext
   , PathCommandType(..)
   , commandName
   , nextPoint
   , pathCommand
+  , pathCommandContext
   , points
   , toHalogenPathCommand
   ) where
 
 import Prelude
+import Data.Array (scanl)
 import Data.Tuple (Tuple(..))
 import Halogen.Svg.Attributes.Path as SP
 import SvgEditor.Vec (Vec2, vec2)
@@ -94,6 +97,23 @@ points = case _ of
     ]
   Bez2' v1 -> [ Tuple v1 $ Bez2' ]
   Close -> []
+
+type PathCommandContext
+  = { origin :: Vec2 Number, command :: PathCommand, prev :: PathCommand }
+
+pathCommandContext :: Array PathCommand -> Array PathCommandContext
+pathCommandContext =
+  scanl
+    ( \prev command ->
+        { origin:
+            case command of
+              Move v -> v
+              _ -> prev.origin
+        , command
+        , prev: prev.command
+        }
+    )
+    { origin: zero, command: Move zero, prev: Move zero }
 
 toHalogenPathCommand :: PathCommand -> SP.PathCommand
 toHalogenPathCommand = case _ of

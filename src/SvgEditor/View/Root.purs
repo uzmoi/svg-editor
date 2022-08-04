@@ -32,7 +32,7 @@ import Effect.Random (randomInt)
 import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, layer)
 import SvgEditor.History as History
-import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), Pos(..), pathCommand)
+import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), pathCommand)
 import SvgEditor.View.Radio (radio)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
@@ -250,8 +250,8 @@ appRoot =
       id <- H.liftEffect $ randomInt 0 0x10000000
       let
         drawPath =
-          [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
-          , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
+          [ Move $ Vec2 { x: 0.0, y: 0.0 }
+          , Line $ Vec2 { x: 100.0, y: 100.0 }
           , Close
           ]
       H.modify_ $ modifyLayers' (_ <> [ layer id drawPath ])
@@ -302,8 +302,8 @@ appRoot =
       id <- H.liftEffect $ randomInt 0 0x10000000
       let
         drawPath =
-          [ Move Abs $ Vec2 { x: 0.0, y: 0.0 }
-          , Line Abs $ Vec2 { x: 100.0, y: 100.0 }
+          [ Move $ Vec2 { x: 0.0, y: 0.0 }
+          , Line $ Vec2 { x: 100.0, y: 100.0 }
           , Close
           ]
       H.modify_ $ modifyLayers (_ <> [ layer id drawPath ])

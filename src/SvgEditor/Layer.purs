@@ -2,8 +2,10 @@ module SvgEditor.Layer
   ( Fill
   , FillRule(..)
   , Layer
+  , Attr
   , Stroke
   , defaultFill
+  , defaultAttr
   , defaultStroke
   , fillRule
   , layer
@@ -23,6 +25,7 @@ type Layer
     , drawPath :: Array PathCommand
     , fill :: Fill
     , stroke :: Stroke
+    , attr :: Attr
     }
 
 layer :: Int -> Array PathCommand -> Layer
@@ -33,6 +36,19 @@ layer id drawPath =
   , drawPath
   , fill: defaultFill
   , stroke: defaultStroke
+  , attr: defaultAttr
+  }
+
+-- Attr
+type Attr
+  = { id :: String
+    , class :: String
+    }
+
+defaultAttr :: Attr
+defaultAttr =
+  { id: ""
+  , class: ""
   }
 
 -- Fill

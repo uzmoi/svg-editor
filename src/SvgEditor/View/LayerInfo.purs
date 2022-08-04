@@ -12,6 +12,7 @@ import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand)
 import SvgEditor.View.DrawPath (drawPath)
 import SvgEditor.View.LayerStyles (layerStyles)
+import SvgEditor.View.LayerAttr (layerAttr)
 import SvgEditor.View.InputControl (Slot)
 
 radio :: forall a b x. Eq x => String -> Array x -> (x -> String) -> x -> (x -> b) -> Array (HH.HTML a b)
@@ -34,6 +35,7 @@ radio id xs print value f =
 data LayerInfoTab
   = PathStylesTab
   | PathCommandsTab
+  | AttrTab
 
 derive instance eqLayerInfoTab :: Eq LayerInfoTab
 
@@ -41,6 +43,7 @@ printLayerInfoTab :: LayerInfoTab -> String
 printLayerInfoTab = case _ of
   PathStylesTab -> "styles"
   PathCommandsTab -> "commands"
+  AttrTab -> "attr"
 
 layerInfo ::
   forall a b.
@@ -52,7 +55,7 @@ layerInfo ::
   Layer ->
   { tab :: LayerInfoTab | b } ->
   HH.ComponentHTML a (Slot Number) Aff
-layerInfo actions { name, drawPath: drawPath', fill, stroke } { tab } =
+layerInfo actions { name, drawPath: drawPath', fill, stroke, attr } { tab } =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]
     [ HH.div [ HP.class_ $ HH.ClassName "layer-profile" ]
@@ -67,7 +70,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } { tab } =
         ]
     , HH.div_
         $ radio "layer-info-tab"
-            [ PathStylesTab, PathCommandsTab ]
+            [ PathStylesTab, PathCommandsTab, AttrTab ]
             printLayerInfoTab
             tab
             actions.selectTab
@@ -76,5 +79,6 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke } { tab } =
         [ case tab of
             PathStylesTab -> layerStyles actions fill stroke
             PathCommandsTab -> drawPath { editCommand: actions.editCommand } drawPath'
+            AttrTab -> layerAttr actions attr
         ]
     ]

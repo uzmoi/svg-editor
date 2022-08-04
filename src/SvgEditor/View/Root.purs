@@ -163,11 +163,11 @@ appRoot =
                   ]
               , HH.div_
                   $ state.refImage.translate
-                  # vec2 \x y ->
-                      [ numberInput "ref-image.x" x \x ->
+                  # vec2 \tx ty ->
+                      [ numberInput "ref-image.x" tx \x ->
                           ModifyRefImage \refimg ->
                             refimg { translate = refimg.translate # vec2 \_ y -> Vec2 { x, y } }
-                      , numberInput "ref-image.y" y \y ->
+                      , numberInput "ref-image.y" ty \y ->
                           ModifyRefImage \refimg ->
                             refimg { translate = refimg.translate # vec2 \x _ -> Vec2 { x, y } }
                       , numberInput "ref-image.scale"
@@ -308,11 +308,11 @@ appRoot =
             H.modify_ _ { scale = newScale, translate = translate + deltaTranslate }
     SetRefImage file -> do
       { refImage } <- H.get
-      refImage <-
+      uri <-
         H.liftEffect
           $ revokeObjectURL refImage.uri
           *> createObjectURL (file # toBlob)
-      H.modify_ _ { refImage { uri = refImage } }
+      H.modify_ _ { refImage { uri = uri } }
     ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
@@ -324,47 +324,40 @@ appRoot =
           ]
       H.modify_ $ modifyLayers (_ <> [ layer id drawPath ])
     DeleteLayer -> do
-      { selected } <- H.get
-      selected
-        # maybe (pure unit) \selected ->
+      H.get >>= _.selected
+        >>> maybe (pure unit) \selected ->
             H.modify_ $ modifyLayers $ filter $ _.id >>> (/=) selected.layerId
     EditLayer id f ->
       H.modify_ $ modifyLayers'
         $ map \layer -> if layer.id == id then f layer else layer
     SelectLayer id -> do
-      { selected } <- H.get
       let
-        selectedLayerId =
-          selected
-            # maybe id \selected ->
-                if selected.layerId == id then -1 else id
+        f selected = if selected.layerId == id then -1 else id
+      selectedLayerId <- H.get # map (_.selected >>> maybe id f)
       H.modify_ _ { selected = Just { layerId: selectedLayerId, tab: PathStylesTab } }
-    SelectTab tab -> do
-      { selected } <- H.get
-      selected
-        # maybe (pure unit) \selected ->
+    SelectTab tab ->
+      H.get >>= _.selected
+        >>> maybe (pure unit) \selected ->
             H.modify_ _ { selected = Just $ selected { tab = tab } }
-    EditSelectedLayer f -> do
-      { selected } <- H.get
-      selected
-        # maybe (pure unit) \selected ->
+    EditSelectedLayer f ->
+      H.get >>= _.selected
+        >>> maybe (pure unit) \selected ->
             handleAction $ EditLayer selected.layerId f
-    SelectCommand commandType -> do
-      H.modify_ _ { command = commandType }
+    SelectCommand commandType -> H.modify_ _ { command = commandType }
     AddCommand i -> do
       { svg, selected, cursorPos, command } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            selected <- selected
-            layer <- (History.present svg).layers # find (_.id >>> (==) selected.layerId)
+            selected' <- selected
+            layer <- (History.present svg).layers # find (_.id >>> (==) selected'.layerId)
             drawPath <- layer.drawPath # insertAt i (pathCommand command cursorPos)
             Just _ { drawPath = drawPath }
     EditCommand i j -> do
       { svg, selected } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
-            selected <- selected
-            layer <- (History.present svg).layers # find (_.id >>> (==) selected.layerId)
+            selected' <- selected
+            layer <- (History.present svg).layers # find (_.id >>> (==) selected'.layerId)
             drawPath <- layer.drawPath # updateAt i j
             Just _ { drawPath = drawPath }
     TranslateStart e -> case e # button of

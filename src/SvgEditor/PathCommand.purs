@@ -12,7 +12,7 @@ module SvgEditor.PathCommand
 import Prelude
 import Data.Tuple (Tuple(..))
 import Halogen.Svg.Attributes.Path as SP
-import SvgEditor.Vec (Vec2(..), vec2)
+import SvgEditor.Vec (Vec2, vec2)
 
 data PathCommandType
   = M

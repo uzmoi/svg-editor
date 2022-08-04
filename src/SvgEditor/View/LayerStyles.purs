@@ -117,7 +117,7 @@ layerStyles actions fill stroke =
       $ numberInput ("layer-info." <> name) value (actions.editLayer <<< onChange)
 
   selectInput' ::
-    forall b x.
+    forall c x.
     Eq x =>
     { name :: String
     , value :: x
@@ -125,12 +125,12 @@ layerStyles actions fill stroke =
     , print :: x -> String
     , onChange :: x -> Layer -> Layer
     } ->
-    HH.HTML b a
+    HH.HTML c a
   selectInput' { name, value, xs, print, onChange } =
     input' name
       $ select ("layer-info." <> name) xs print value (actions.editLayer <<< onChange)
 
-  input' :: forall a b. String -> HH.HTML a b -> HH.HTML a b
+  input' :: forall c d. String -> HH.HTML c d -> HH.HTML c d
   input' name input =
     HH.dl
       [ HP.class_ $ HH.ClassName "style-input" ]

@@ -25,6 +25,7 @@ type Layer
     , stroke :: Stroke
     }
 
+layer :: Int -> Array PathCommand -> Layer
 layer id drawPath =
   { id
   , name: "Layer"

@@ -37,10 +37,10 @@ svgLayer { drawPath, fill, stroke } =
         , strokeAttr _.miterLimit # map HSA.strokeMiterLimit
         ]
   where
-  fillAttr :: forall a. Eq a => (Fill -> a) -> Maybe a
+  fillAttr :: forall c. Eq c => (Fill -> c) -> Maybe c
   fillAttr f = justIfNotDefault (f defaultFill) (f fill)
 
-  strokeAttr :: forall a. Eq a => (Stroke -> a) -> Maybe a
+  strokeAttr :: forall c. Eq c => (Stroke -> c) -> Maybe c
   strokeAttr f = justIfNotDefault (f defaultStroke) (f stroke)
 
 justIfNotDefault :: forall a. Eq a => a -> a -> Maybe a

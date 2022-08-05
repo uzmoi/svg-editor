@@ -27,11 +27,11 @@ pathCommandInfo actions pathCommands =
         HH.li_
           [ HH.text $ commandName cblock.command
           , HH.div_ $ points cblock.command
-              # mapWithIndex \j (Tuple (Vec2 v) updateV) ->
+              # mapWithIndex \i (Tuple (Vec2 v) updateV) ->
                   let
-                    key = "draw-path." <> show cblock.id <> "." <> show j
+                    key = "draw-path." <> cblock.id <> "." <> show i
 
-                    handleEditVec f x = actions.editCommand { id: cblock.id, command: updateV $ f x }
+                    handleEditVec f x = actions.editCommand cblock { command = updateV $ f x }
                   in
                     HH.div_
                       [ numberInput (key <> ".x") v.x $ handleEditVec \x -> Vec2 v { x = x }

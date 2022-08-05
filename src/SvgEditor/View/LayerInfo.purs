@@ -39,12 +39,13 @@ layerInfo ::
   Layer ->
   { tab :: LayerInfoTab | b } ->
   HH.ComponentHTML a (Slot Number) Aff
-layerInfo actions { name, drawPath, fill, stroke, attr } { tab } =
+layerInfo actions layer selected =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]
-    [ HH.div [ HP.class_ $ HH.ClassName "layer-profile" ]
+    [ HH.div
+        [ HP.class_ $ HH.ClassName "layer-profile" ]
         [ HH.input
-            [ HP.value name
+            [ HP.value layer.name
             , HE.onValueInput \value -> actions.editLayer _ { name = value }
             , HP.class_ $ HH.ClassName "layer-name-input"
             ]
@@ -56,13 +57,13 @@ layerInfo actions { name, drawPath, fill, stroke, attr } { tab } =
         $ radio "layer-info-tab"
             [ PathStylesTab, PathCommandsTab, AttrTab ]
             printLayerInfoTab
-            tab
+            selected.tab
             actions.selectTab
     , HH.section
         [ HP.class_ $ HH.ClassName "layer-info-tab-contents" ]
-        [ case tab of
-            PathStylesTab -> layerStyles actions fill stroke
-            PathCommandsTab -> pathCommandInfo { editCommand: actions.editCommand } drawPath
-            AttrTab -> layerAttr actions attr
+        [ case selected.tab of
+            PathStylesTab -> layerStyles actions layer.fill layer.stroke
+            PathCommandsTab -> pathCommandInfo { editCommand: actions.editCommand } layer.drawPath
+            AttrTab -> layerAttr actions layer.attr
         ]
     ]

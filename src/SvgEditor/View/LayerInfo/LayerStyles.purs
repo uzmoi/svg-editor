@@ -34,6 +34,12 @@ select id xs print value f =
             [ HP.value name, HP.selected $ value == x ]
             [ HH.text name ]
 
+fill_ :: (Fill -> Fill) -> Layer -> Layer
+fill_ f layer = layer { fill = f layer.fill }
+
+stroke_ :: (Stroke -> Stroke) -> Layer -> Layer
+stroke_ f layer = layer { stroke = f layer.stroke }
+
 layerStyles ::
   forall a b.
   { editLayer :: (Layer -> Layer) -> a | b } ->
@@ -43,63 +49,63 @@ layerStyles actions fill stroke =
     [ stringInput'
         { name: "fill-paint"
         , value: fill.paint
-        , onChange: \x -> _ { fill { paint = x } }
+        , onChange: \x -> fill_ _ { paint = x }
         }
     , numberInput'
         { name: "fill-opacity"
         , value: fill.opacity
-        , onChange: \x -> _ { fill { opacity = clamp 0.0 1.0 x } }
+        , onChange: \x -> fill_ _ { opacity = clamp 0.0 1.0 x }
         }
     , selectInput'
         { name: "fill-rule"
         , value: fill.rule
         , xs: [ NonZero, EvenOdd ]
         , print: show
-        , onChange: \x -> _ { fill { rule = x } }
+        , onChange: \x -> fill_ _ { rule = x }
         }
     , stringInput'
         { name: "stroke-paint"
         , value: stroke.paint
-        , onChange: \x -> _ { stroke { paint = x } }
+        , onChange: \x -> stroke_ _ { paint = x }
         }
     , numberInput'
         { name: "stroke-opacity"
         , value: stroke.opacity
-        , onChange: \x -> _ { stroke { opacity = clamp 0.0 1.0 x } }
+        , onChange: \x -> stroke_ _ { opacity = clamp 0.0 1.0 x }
         }
     , numberInput'
         { name: "stroke-width"
         , value: stroke.width
-        , onChange: \x -> _ { stroke { width = x } }
+        , onChange: \x -> stroke_ _ { width = x }
         }
     , numberInput'
         { name: "dash-offset"
         , value: stroke.dashOffset
-        , onChange: \x -> _ { stroke { dashOffset = x } }
+        , onChange: \x -> stroke_ _ { dashOffset = x }
         }
     , stringInput'
         { name: "dash-array"
         , value: stroke.dashArray
-        , onChange: \x -> _ { stroke { dashArray = x } }
+        , onChange: \x -> stroke_ _ { dashArray = x }
         }
     , selectInput'
         { name: "line-cap"
         , value: stroke.lineCap
         , xs: [ LineCapButt, LineCapSquare, LineCapRound ]
         , print: printStrokeLineCap
-        , onChange: \x -> _ { stroke { lineCap = x } }
+        , onChange: \x -> stroke_ _ { lineCap = x }
         }
     , selectInput'
         { name: "line-join"
         , value: stroke.lineJoin
         , xs: [ LineJoinArcs, LineJoinBevel, LineJoinMiter, LineJoinMiterClip, LineJoinRound ]
         , print: printStrokeLineJoin
-        , onChange: \x -> _ { stroke { lineJoin = x } }
+        , onChange: \x -> stroke_ _ { lineJoin = x }
         }
     , numberInput'
         { name: "miter-limit"
         , value: stroke.miterLimit
-        , onChange: \x -> _ { stroke { miterLimit = x } }
+        , onChange: \x -> stroke_ _ { miterLimit = x }
         }
     ]
   where

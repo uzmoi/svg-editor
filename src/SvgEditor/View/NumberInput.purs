@@ -16,14 +16,13 @@ import Web.UIEvent.MouseEvent (ctrlKey)
 import SvgEditor.View.InputControl (inputControl, inputControlActions, Slot)
 
 numberInput :: forall a. String -> Number -> (Number -> a) -> HH.ComponentHTML a (Slot Number) Aff
-numberInput key value onChange =
+numberInput key value =
   inputControl key
     { value: value
     , format: show
     , parse: fromString
     , render
     }
-    onChange
   where
   render string =
     HH.input

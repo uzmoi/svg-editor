@@ -1,4 +1,4 @@
-module SvgEditor.View.LayerAttr
+module SvgEditor.View.LayerInfo.LayerAttr
   ( layerAttr
   ) where
 

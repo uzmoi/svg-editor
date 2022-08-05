@@ -1,5 +1,5 @@
-module SvgEditor.View.DrawPath
-  ( drawPath
+module SvgEditor.View.LayerInfo.PathCommand
+  ( pathCommandInfo
   ) where
 
 import Prelude
@@ -13,11 +13,11 @@ import SvgEditor.PathCommand (PathCommand, commandName, points)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.InputControl (Slot)
 
-drawPath ::
+pathCommandInfo ::
   forall a.
   { editCommand :: Int -> PathCommand -> a } ->
   Array PathCommand -> HH.ComponentHTML a (Slot Number) Aff
-drawPath actions pathCommands =
+pathCommandInfo actions pathCommands =
   HH.ul
     [ HP.class_ $ HH.ClassName "draw-path-commands" ]
     $ pathCommands

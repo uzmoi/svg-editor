@@ -1,4 +1,4 @@
-module SvgEditor.View.LayerStyles
+module SvgEditor.View.LayerInfo.LayerStyles
   ( layerStyles
   ) where
 

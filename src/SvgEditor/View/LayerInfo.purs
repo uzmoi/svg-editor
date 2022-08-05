@@ -10,9 +10,9 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand)
-import SvgEditor.View.DrawPath (drawPath)
-import SvgEditor.View.LayerStyles (layerStyles)
-import SvgEditor.View.LayerAttr (layerAttr)
+import SvgEditor.View.LayerInfo.PathCommand (pathCommandInfo)
+import SvgEditor.View.LayerInfo.LayerStyles (layerStyles)
+import SvgEditor.View.LayerInfo.LayerAttr (layerAttr)
 import SvgEditor.View.InputControl (Slot)
 import SvgEditor.View.Radio (radio)
 
@@ -39,7 +39,7 @@ layerInfo ::
   Layer ->
   { tab :: LayerInfoTab | b } ->
   HH.ComponentHTML a (Slot Number) Aff
-layerInfo actions { name, drawPath: drawPath', fill, stroke, attr } { tab } =
+layerInfo actions { name, drawPath, fill, stroke, attr } { tab } =
   HH.div
     [ HP.class_ $ HH.ClassName "layer-info" ]
     [ HH.div [ HP.class_ $ HH.ClassName "layer-profile" ]
@@ -62,7 +62,7 @@ layerInfo actions { name, drawPath: drawPath', fill, stroke, attr } { tab } =
         [ HP.class_ $ HH.ClassName "layer-info-tab-contents" ]
         [ case tab of
             PathStylesTab -> layerStyles actions fill stroke
-            PathCommandsTab -> drawPath { editCommand: actions.editCommand } drawPath'
+            PathCommandsTab -> pathCommandInfo { editCommand: actions.editCommand } drawPath
             AttrTab -> layerAttr actions attr
         ]
     ]

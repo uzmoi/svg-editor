@@ -9,7 +9,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import SvgEditor.Layer (Layer)
-import SvgEditor.PathCommand (PathCommand)
+import SvgEditor.PathCommandBlock (PathCommandBlock)
 import SvgEditor.View.LayerInfo.PathCommand (pathCommandInfo)
 import SvgEditor.View.LayerInfo.LayerStyles (layerStyles)
 import SvgEditor.View.LayerInfo.LayerAttr (layerAttr)
@@ -33,7 +33,7 @@ layerInfo ::
   forall a b.
   { editLayer :: (Layer -> Layer) -> a
   , deleteLayer :: a
-  , editCommand :: Int -> PathCommand -> a
+  , editCommand :: PathCommandBlock -> a
   , selectTab :: LayerInfoTab -> a
   } ->
   Layer ->

@@ -23,7 +23,7 @@ svgLayer :: forall a b. Layer.Layer -> HH.HTML a b
 svgLayer { drawPath, fill, stroke, attr } =
   HSE.path
     $ catMaybes
-        [ Just $ HSA.d (drawPath # map toHalogenPathCommand)
+        [ Just $ HSA.d (toHalogenPathCommand <$> _.command <$> drawPath)
         , fillAttr _.paint # map (HSA.Named >>> HSA.fill)
         , fillAttr _.opacity # map HSA.fillOpacity
         , fillAttr _.rule # map Layer.fillRule

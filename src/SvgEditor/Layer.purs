@@ -16,19 +16,19 @@ import Halogen.HTML as H
 import Halogen.HTML.Properties (IProp, attr)
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
-import SvgEditor.PathCommand (PathCommand)
+import SvgEditor.PathCommandBlock (PathCommandBlock)
 
 type Layer
   = { id :: Int
     , name :: String
     , show :: Boolean
-    , drawPath :: Array PathCommand
+    , drawPath :: Array PathCommandBlock
     , fill :: Fill
     , stroke :: Stroke
     , attr :: Attr
     }
 
-layer :: Int -> Array PathCommand -> Layer
+layer :: Int -> Array PathCommandBlock -> Layer
 layer id drawPath =
   { id
   , name: "Layer"

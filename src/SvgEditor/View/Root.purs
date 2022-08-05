@@ -1,9 +1,9 @@
 module SvgEditor.View.Root (appRoot) where
 
 import Prelude
-import Data.Array (filter, find, insertAt, updateAt, head)
+import Data.Array (filter, find, insertAt, head)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
-import Data.Int (toNumber, floor)
+import Data.Int (toNumber, floor, toStringAs, hexadecimal)
 import Data.Number (sign)
 import Data.Number.Format (toStringWith, fixed)
 import Data.String (toLower)
@@ -33,6 +33,7 @@ import SvgEditor.Vec (Vec2(..), vec2)
 import SvgEditor.Layer (Layer, layer)
 import SvgEditor.History as History
 import SvgEditor.PathCommand (PathCommand(..), PathCommandType(..), pathCommand)
+import SvgEditor.PathCommandBlock (PathCommandBlock)
 import SvgEditor.View.Radio (radio)
 import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.Canvas (RefImage, svgCanvas, canvasContainerRef)
@@ -55,9 +56,9 @@ data Action
   | EditSelectedLayer (Layer -> Layer)
   | SelectCommand PathCommandType
   | AddCommand Int
-  | EditCommand Int PathCommand
+  | EditCommand PathCommandBlock
   | TranslateStart MouseEvent
-  | DragStart Int (Vec2 Number -> PathCommand)
+  | DragStart String (Vec2 Number -> PathCommand)
   | Drag MouseEvent
   | DragEnd
   | NOOP
@@ -67,7 +68,7 @@ toFixed = toStringWith $ fixed 1
 
 data Dragging
   = DraggingCanvas (Vec2 Number)
-  | DraggingPoint Int (Vec2 Number -> PathCommand)
+  | DraggingPoint String (Vec2 Number -> PathCommand)
   | NotDragging
 
 appRoot :: forall query message. H.Component query Unit message Aff
@@ -239,6 +240,8 @@ appRoot =
     in
       clamp (100.0 / 96.0) 12800.0 newScale
 
+  randId = toStringAs hexadecimal <$> randomInt 0 0x10000000
+
   handleAction = case _ of
     Init -> do
       document <- H.liftEffect $ Window.document =<< window
@@ -248,11 +251,14 @@ appRoot =
           (map KeyDown <<< fromEvent)
       -- AddLayer
       id <- H.liftEffect $ randomInt 0 0x10000000
+      id1 <- H.liftEffect randId
+      id2 <- H.liftEffect randId
+      id3 <- H.liftEffect randId
       let
         drawPath =
-          [ Move $ Vec2 { x: 0.0, y: 0.0 }
-          , Line $ Vec2 { x: 100.0, y: 100.0 }
-          , Close
+          [ { id: id1, command: Move $ Vec2 { x: 0.0, y: 0.0 } }
+          , { id: id2, command: Line $ Vec2 { x: 100.0, y: 100.0 } }
+          , { id: id3, command: Close }
           ]
       H.modify_ $ modifyLayers' (_ <> [ layer id drawPath ])
     KeyDown e ->
@@ -300,11 +306,14 @@ appRoot =
     ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do
       id <- H.liftEffect $ randomInt 0 0x10000000
+      id1 <- H.liftEffect randId
+      id2 <- H.liftEffect randId
+      id3 <- H.liftEffect randId
       let
         drawPath =
-          [ Move $ Vec2 { x: 0.0, y: 0.0 }
-          , Line $ Vec2 { x: 100.0, y: 100.0 }
-          , Close
+          [ { id: id1, command: Move $ Vec2 { x: 0.0, y: 0.0 } }
+          , { id: id2, command: Line $ Vec2 { x: 100.0, y: 100.0 } }
+          , { id: id3, command: Close }
           ]
       H.modify_ $ modifyLayers (_ <> [ layer id drawPath ])
     DeleteLayer -> do
@@ -330,20 +339,29 @@ appRoot =
     SelectCommand commandType -> H.modify_ _ { command = commandType }
     AddCommand i -> do
       { svg, selected, cursorPos, command } <- H.get
+      id <- H.liftEffect randId
       handleAction
         $ maybe NOOP EditSelectedLayer do
             selected' <- selected
             layer <- (History.present svg).layers # find (_.id >>> (==) selected'.layerId)
-            drawPath <- layer.drawPath # insertAt i (pathCommand command cursorPos)
+            drawPath <- layer.drawPath # insertAt i { id, command: pathCommand command cursorPos }
             Just _ { drawPath = drawPath }
-    EditCommand i j -> do
+    EditCommand { id, command } -> do
       { svg, selected } <- H.get
       handleAction
         $ maybe NOOP EditSelectedLayer do
             selected' <- selected
             layer <- (History.present svg).layers # find (_.id >>> (==) selected'.layerId)
-            drawPath <- layer.drawPath # updateAt i j
-            Just _ { drawPath = drawPath }
+            Just
+              _
+                { drawPath =
+                  layer.drawPath
+                    # map \cblock ->
+                        if cblock.id == id then
+                          { id: cblock.id, command }
+                        else
+                          cblock
+                }
     TranslateStart e -> case e # button of
       1 -> do
         { translate } <- H.get
@@ -374,6 +392,6 @@ appRoot =
         DraggingCanvas startTranslate ->
           H.modify_
             _ { translate = startTranslate + (toNumber <$> clientPos e) }
-        DraggingPoint i j -> handleAction $ EditCommand i $ j cursorPos
+        DraggingPoint id j -> handleAction $ EditCommand { id, command: j cursorPos }
         NotDragging -> pure unit
     NOOP -> pure unit

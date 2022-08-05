@@ -13,6 +13,7 @@ import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Attributes (Color(..))
 import SvgEditor.Vec (Vec2(..))
 import SvgEditor.PathCommand (PathCommand(..), PathCommandContext, points, nextPoint, pathCommandContext, toHalogenPathCommand, commandName)
+import SvgEditor.PathCommandBlock (PathCommandBlock)
 
 overlayPoint ::
   forall a b.
@@ -31,9 +32,12 @@ overlayPoint f size (Tuple (Vec2 v) updateV) =
 
 overlayPoints ::
   forall a b.
-  (Int -> (Vec2 Number -> PathCommand) -> b) ->
-  Number -> Array PathCommand -> Array (HH.HTML a b)
-overlayPoints f size = concat <<< mapWithIndex \i -> points >>> map (overlayPoint (f i) size)
+  (String -> (Vec2 Number -> PathCommand) -> b) ->
+  Number -> Array PathCommandBlock -> Array (HH.HTML a b)
+overlayPoints f size =
+  concat
+    <<< map \cblock ->
+        points cblock.command # map (overlayPoint (f cblock.id) size)
 
 overlayLine :: forall a b. b -> Number -> Array PathCommand -> HH.HTML a b
 overlayLine f size commands =
@@ -46,9 +50,9 @@ overlayLine f size commands =
     , HE.onClick \_ -> f
     ]
 
-overlayLines :: forall a b. (Int -> b) -> Number -> Array PathCommand -> Array (HH.HTML a b)
-overlayLines f size commands =
-  overlayCommandPath <$> pathCommandContext commands
+overlayLines :: forall a b. (Int -> b) -> Number -> Array PathCommandBlock -> Array (HH.HTML a b)
+overlayLines f size drawPath =
+  overlayCommandPath <$> pathCommandContext (_.command <$> drawPath)
     # mapWithIndex \i { command, overlayPath } ->
         HSE.g [ HSA.class_ $ HH.ClassName $ commandName command ]
           $ overlayLine (f $ i + 1) size

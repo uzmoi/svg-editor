@@ -51,7 +51,7 @@ transform translate scale =
 
 svgCanvas ::
   forall a b c d.
-  { dragStart :: Int -> (Vec2 Number -> PathCommand) -> b
+  { dragStart :: String -> (Vec2 Number -> PathCommand) -> b
   , addCommand :: Int -> b
   } ->
   Number ->

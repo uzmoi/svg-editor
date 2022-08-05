@@ -1,13 +1,14 @@
 module SvgEditor.History
   ( History
-  , history
-  , present
-  , next
-  , update
-  , undo
-  , redo
-  , canUndo
   , canRedo
+  , canUndo
+  , history
+  , next
+  , present
+  , redo
+  , replace
+  , undo
+  , update
   ) where
 
 import Prelude
@@ -44,6 +45,9 @@ update f (History history) =
     , future: Nil
     , present: f history.present
     }
+
+replace :: forall a. (a -> a) -> History a -> History a
+replace f (History history) = History history { present = f history.present }
 
 undo :: forall a. History a -> Maybe (History a)
 undo (History history) =

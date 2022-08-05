@@ -19,7 +19,7 @@ import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
 import SvgEditor.PathCommandBlock (PathCommandBlock)
 
 type Layer
-  = { id :: Int
+  = { id :: String
     , name :: String
     , show :: Boolean
     , drawPath :: Array PathCommandBlock
@@ -28,7 +28,7 @@ type Layer
     , attr :: Attr
     }
 
-layer :: Int -> Array PathCommandBlock -> Layer
+layer :: String -> Array PathCommandBlock -> Layer
 layer id drawPath =
   { id
   , name: "Layer"

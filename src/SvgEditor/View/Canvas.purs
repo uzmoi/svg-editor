@@ -57,7 +57,7 @@ svgCanvas ::
   Number ->
   { translate :: Vec2 Number
   , refImage :: RefImage
-  , selected :: Maybe { layerId :: Int | d }
+  , selected :: Maybe { layerId :: String | d }
   | c
   } ->
   { canvas :: Canvas
@@ -85,13 +85,10 @@ svgCanvas actions scale { translate, refImage, selected } { canvas, layers } =
         ]
     , HSE.svg
         (canvasProps canvas <> [ class_ $ HH.ClassName "overlay" ])
-        ( layers # find (_.id >>> (==) selectedLayerId)
-            # maybe [] \layer ->
-                overlayLines actions.addCommand size layer.drawPath
-                  <> overlayPoints actions.dragStart size layer.drawPath
-        )
+        $ (selected >>= \{ layerId } -> layers # find (_.id >>> (==) layerId))
+        # maybe [] \layer ->
+            overlayLines actions.addCommand size layer.drawPath
+              <> overlayPoints actions.dragStart size layer.drawPath
     ]
   where
-  selectedLayerId = selected # maybe (-1) _.layerId
-
   size = 1.0 / scale

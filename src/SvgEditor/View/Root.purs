@@ -50,8 +50,8 @@ data Action
   | ModifyRefImage (RefImage -> RefImage)
   | AddLayer
   | DeleteLayer
-  | EditLayer Int (Layer -> Layer)
-  | SelectLayer Int
+  | EditLayer String (Layer -> Layer)
+  | SelectLayer String
   | SelectTab LayerInfoTab
   | EditSelectedLayer (Layer -> Layer)
   | SelectCommand PathCommandType
@@ -189,7 +189,7 @@ appRoot =
                   , editLayer: EditLayer
                   }
                   (History.present state.svg).layers
-                  (state.selected # maybe (-1) _.layerId)
+                  (state.selected # map _.layerId)
               , fromMaybe (HH.div_ []) do
                   selected <- state.selected
                   layer <- (History.present state.svg).layers # find (_.id >>> (==) selected.layerId)
@@ -250,7 +250,7 @@ appRoot =
           (HTMLDocument.toEventTarget document)
           (map KeyDown <<< fromEvent)
       -- AddLayer
-      id <- H.liftEffect $ randomInt 0 0x10000000
+      id <- H.liftEffect randId
       id1 <- H.liftEffect randId
       id2 <- H.liftEffect randId
       id3 <- H.liftEffect randId
@@ -305,7 +305,7 @@ appRoot =
       H.modify_ _ { refImage { uri = uri } }
     ModifyRefImage f -> H.modify_ \state -> state { refImage = f state.refImage }
     AddLayer -> do
-      id <- H.liftEffect $ randomInt 0 0x10000000
+      id <- H.liftEffect randId
       id1 <- H.liftEffect randId
       id2 <- H.liftEffect randId
       id3 <- H.liftEffect randId
@@ -323,11 +323,15 @@ appRoot =
     EditLayer id f ->
       H.modify_ $ modifyLayers'
         $ map \layer -> if layer.id == id then f layer else layer
-    SelectLayer id -> do
-      let
-        f selected = if selected.layerId == id then -1 else id
-      selectedLayerId <- H.get # map (_.selected >>> maybe id f)
-      H.modify_ _ { selected = Just { layerId: selectedLayerId, tab: PathStylesTab } }
+    SelectLayer id ->
+      H.modify_ \state ->
+        state
+          { selected =
+            case state.selected of
+              Just selected
+                | selected.layerId == id -> Nothing
+              _ -> Just { layerId: id, tab: PathStylesTab }
+          }
     SelectTab tab ->
       H.get >>= _.selected
         >>> maybe (pure unit) \selected ->

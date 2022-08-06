@@ -21,7 +21,7 @@ type Props io raw
   = { value :: io
     , format :: io -> raw
     , parse :: raw -> Maybe io
-    , render :: raw -> HH.ComponentHTML (Action io raw) (Slot io) Aff
+    , render :: Boolean -> raw -> HH.ComponentHTML (Action io raw) (Slot io) Aff
     }
 
 inputControlActions ::
@@ -77,7 +77,7 @@ inputControlComponent =
       , props
       }
 
-  render { props, realValue } = props.render realValue
+  render { props, focus, realValue } = props.render focus realValue
 
   handleAction = case _ of
     Focus -> H.modify_ _ { focus = true }

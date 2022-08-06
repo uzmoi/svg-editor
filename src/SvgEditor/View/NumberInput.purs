@@ -24,7 +24,7 @@ numberInput key value =
     , render
     }
   where
-  render string =
+  render focus string =
     HH.input
       [ HP.id key
       , HP.value string
@@ -32,14 +32,17 @@ numberInput key value =
       , HE.onFocus \_ -> inputControlActions.focus
       , HE.onBlur \_ -> inputControlActions.blur
       , HE.onWheel \e ->
-          let
-            dx = deltaY e / if e # toMouseEvent # ctrlKey then 1000.0 else 100.0
-          in
-            inputControlActions.effect (preventDefault $ e # toEvent)
-              <> ( inputControlActions.change
-                    $ fromString string
-                    # maybe string \x -> show $ x - dx
-                )
+          if focus then
+            let
+              dx = deltaY e / if e # toMouseEvent # ctrlKey then 1000.0 else 100.0
+            in
+              inputControlActions.effect (preventDefault $ e # toEvent)
+                <> ( inputControlActions.change
+                      $ fromString string
+                      # maybe string \x -> show $ x - dx
+                  )
+          else
+            inputControlActions.effect $ pure unit
       , HP.class_ $ HH.ClassName "input"
       , ARIA.invalid $ show $ fromString string # isNothing
       ]

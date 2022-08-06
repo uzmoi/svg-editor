@@ -198,6 +198,7 @@ appRoot =
                         { editLayer: EditSelectedLayer
                         , deleteLayer: DeleteLayer
                         , editCommand: EditCommand
+                        , addCommand: AddCommand
                         , selectTab: SelectTab
                         }
                         layer

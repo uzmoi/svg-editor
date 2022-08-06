@@ -34,6 +34,7 @@ layerInfo ::
   { editLayer :: (Layer -> Layer) -> a
   , deleteLayer :: a
   , editCommand :: PathCommandBlock -> a
+  , addCommand :: Int -> a
   , selectTab :: LayerInfoTab -> a
   } ->
   Layer ->
@@ -63,7 +64,7 @@ layerInfo actions layer selected =
         [ HP.class_ $ HH.ClassName "layer-info-tab-contents" ]
         [ case selected.tab of
             PathStylesTab -> layerStyles actions layer.fill layer.stroke
-            PathCommandsTab -> pathCommandInfo { editCommand: actions.editCommand } layer.drawPath
+            PathCommandsTab -> pathCommandInfo actions layer.drawPath
             AttrTab -> layerAttr actions layer.attr
         ]
     ]

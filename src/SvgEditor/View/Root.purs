@@ -97,6 +97,7 @@ appRoot =
                   }
               }
           , layers: []
+          , defines: []
           }
     , scale: 100.0
     , translate: zero

@@ -5,7 +5,7 @@ module SvgEditor.View.LayerInfo.PathCommand
 import Prelude
 import Data.Maybe (fromMaybe)
 import Data.Tuple (Tuple(..))
-import Data.Array (mapWithIndex, findIndex)
+import Data.Array (mapWithIndex, findIndex, elem)
 import Effect.Aff (Aff)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -17,28 +17,22 @@ import SvgEditor.View.NumberInput (numberInput)
 import SvgEditor.View.InputControl (Slot)
 
 pathCommandInfo ::
-  forall a b.
-  { editCommand :: PathCommandBlock -> a, addCommand :: Int -> a | b } ->
+  forall a b c.
+  { editCommand :: PathCommandBlock -> a
+  , addCommand :: Int -> a
+  , selectCommand :: String -> a
+  | b
+  } ->
   Array PathCommandBlock ->
+  { commands :: Array String | c } ->
   HH.ComponentHTML a (Slot Number) Aff
-pathCommandInfo actions pathCommands =
+pathCommandInfo actions pathCommands selected =
   HH.ul
     [ HP.class_ $ HH.ClassName "draw-path-commands" ]
     $ pathCommands
     # map \cblock ->
         HH.li_
-          [ HH.text $ commandName cblock.command
-          , HH.div_ $ points cblock.command
-              # mapWithIndex \i (Tuple (Vec2 v) updateV) ->
-                  let
-                    key = "draw-path." <> cblock.id <> "." <> show i
-
-                    handleEditVec f x = actions.editCommand cblock { command = updateV $ f x }
-                  in
-                    HH.div_
-                      [ numberInput (key <> ".x") v.x $ handleEditVec \x -> Vec2 v { x = x }
-                      , numberInput (key <> ".y") v.y $ handleEditVec \y -> Vec2 v { y = y }
-                      ]
+          [ commandInfo actions cblock selected
           , HH.button
               [ HE.onClick \_ ->
                   actions.addCommand $ 1
@@ -48,3 +42,36 @@ pathCommandInfo actions pathCommands =
               ]
               [ HH.text "add command" ]
           ]
+
+commandInfo ::
+  forall a b c.
+  { editCommand :: PathCommandBlock -> a
+  , selectCommand :: String -> a
+  | b
+  } ->
+  PathCommandBlock ->
+  { commands :: Array String | c } ->
+  HH.ComponentHTML a (Slot Number) Aff
+commandInfo actions cblock selected =
+  HH.div
+    [ HP.classes
+        $ [ HH.ClassName "command" ]
+        <> (if elem cblock.id selected.commands then [ HH.ClassName "selected" ] else [])
+    ]
+    [ HH.p
+        [ HE.onClick \_ -> actions.selectCommand cblock.id ]
+        [ HH.text $ commandName cblock.command ]
+    , HH.ul
+        [ HP.class_ $ HH.ClassName "points" ]
+        $ points cblock.command
+        # mapWithIndex \i (Tuple (Vec2 v) updateV) ->
+            let
+              key = "draw-path." <> cblock.id <> "." <> show i
+
+              handleEditVec f x = actions.editCommand cblock { command = updateV $ f x }
+            in
+              HH.li_
+                [ numberInput (key <> ".x") v.x $ handleEditVec \x -> Vec2 v { x = x }
+                , numberInput (key <> ".y") v.y $ handleEditVec \y -> Vec2 v { y = y }
+                ]
+    ]

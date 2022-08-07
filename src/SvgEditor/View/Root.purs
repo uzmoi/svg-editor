@@ -1,7 +1,7 @@
 module SvgEditor.View.Root (appRoot) where
 
 import Prelude
-import Data.Array (filter, find, insertAt, head)
+import Data.Array (filter, find, insertAt, head, elem, delete, (:))
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Int (toNumber, floor, toStringAs, hexadecimal)
 import Data.Number (sign)
@@ -53,8 +53,9 @@ data Action
   | EditLayer String (Layer -> Layer)
   | SelectLayer String
   | SelectTab LayerInfoTab
+  | SelectCommand String
   | EditSelectedLayer (Layer -> Layer)
-  | SelectCommand PathCommandType
+  | SelectCommandType PathCommandType
   | AddCommand Int
   | EditCommand PathCommandBlock
   | TranslateStart MouseEvent
@@ -119,7 +120,7 @@ appRoot =
           [ HH.h1_ [ HH.text "Svg editor" ]
           , HH.div [ HP.class_ $ HH.ClassName "menu-bar" ]
               [ HH.div_
-                  $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show state.command SelectCommand
+                  $ radio "path-command-type" [ M, L, C, S, Q, T, Z ] show state.command SelectCommandType
               , HH.p_
                   [ HH.text $ toFixed state.scale
                   , HH.text "%"
@@ -199,6 +200,7 @@ appRoot =
                         , deleteLayer: DeleteLayer
                         , editCommand: EditCommand
                         , addCommand: AddCommand
+                        , selectCommand: SelectCommand
                         , selectTab: SelectTab
                         }
                         layer
@@ -268,14 +270,14 @@ appRoot =
           | ctrlKey e -> handleAction Undo
         "y"
           | ctrlKey e -> handleAction Redo
-        "m" -> handleAction $ SelectCommand M
-        "l" -> handleAction $ SelectCommand L
-        "c" -> handleAction $ SelectCommand C
-        "s" -> handleAction $ SelectCommand S
-        "q" -> handleAction $ SelectCommand Q
-        "t" -> handleAction $ SelectCommand T
-        -- "a" -> handleAction $ SelectCommand A
-        "z" -> handleAction $ SelectCommand Z
+        "m" -> handleAction $ SelectCommandType M
+        "l" -> handleAction $ SelectCommandType L
+        "c" -> handleAction $ SelectCommandType C
+        "s" -> handleAction $ SelectCommandType S
+        "q" -> handleAction $ SelectCommandType Q
+        "t" -> handleAction $ SelectCommandType T
+        -- "a" -> handleAction $ SelectCommandType A
+        "z" -> handleAction $ SelectCommandType Z
         _ -> pure unit
     Undo -> H.modify_ $ modifySvg \svg -> fromMaybe svg $ History.undo svg
     Redo -> H.modify_ $ modifySvg \svg -> fromMaybe svg $ History.redo svg
@@ -331,17 +333,23 @@ appRoot =
             case state.selected of
               Just selected
                 | selected.layerId == id -> Nothing
-              _ -> Just { layerId: id, tab: PathStylesTab }
+              _ -> Just { layerId: id, tab: PathStylesTab, commands: [] }
           }
     SelectTab tab ->
       H.get >>= _.selected
         >>> maybe (pure unit) \selected ->
             H.modify_ _ { selected = Just $ selected { tab = tab } }
+    SelectCommand id -> do
+      let
+        toggle x xs = if elem x xs then delete x xs else x : xs
+      H.get >>= _.selected
+        >>> maybe (pure unit) \selected ->
+            H.modify_ _ { selected = Just $ selected { commands = toggle id selected.commands } }
     EditSelectedLayer f ->
       H.get >>= _.selected
         >>> maybe (pure unit) \selected ->
             handleAction $ EditLayer selected.layerId f
-    SelectCommand commandType -> H.modify_ _ { command = commandType }
+    SelectCommandType commandType -> H.modify_ _ { command = commandType }
     AddCommand i -> do
       { svg, selected, cursorPos, command } <- H.get
       id <- H.liftEffect randId

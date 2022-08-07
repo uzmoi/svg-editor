@@ -35,10 +35,11 @@ layerInfo ::
   , deleteLayer :: a
   , editCommand :: PathCommandBlock -> a
   , addCommand :: Int -> a
+  , selectCommand :: String -> a
   , selectTab :: LayerInfoTab -> a
   } ->
   Layer ->
-  { tab :: LayerInfoTab | b } ->
+  { tab :: LayerInfoTab, commands :: Array String | b } ->
   HH.ComponentHTML a (Slot Number) Aff
 layerInfo actions layer selected =
   HH.div
@@ -64,7 +65,7 @@ layerInfo actions layer selected =
         [ HP.class_ $ HH.ClassName "layer-info-tab-contents" ]
         [ case selected.tab of
             PathStylesTab -> layerStyles actions layer.fill layer.stroke
-            PathCommandsTab -> pathCommandInfo actions layer.drawPath
+            PathCommandsTab -> pathCommandInfo actions layer.drawPath selected
             AttrTab -> layerAttr actions layer.attr
         ]
     ]

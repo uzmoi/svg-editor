@@ -7,13 +7,11 @@ module SvgEditor.View.InputControl
   ) where
 
 import Prelude
-import Data.Number (fromString)
 import Data.Maybe (Maybe(..), maybe)
+import Effect (Effect)
 import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
 import Type.Proxy (Proxy(..))
 
 type Slot io
@@ -23,7 +21,7 @@ type Props io raw
   = { value :: io
     , format :: io -> raw
     , parse :: raw -> Maybe io
-    , render :: raw -> HH.ComponentHTML (Action io raw) (Slot io) Aff
+    , render :: Boolean -> raw -> HH.ComponentHTML (Action io raw) (Slot io) Aff
     }
 
 inputControlActions ::
@@ -31,14 +29,20 @@ inputControlActions ::
   { change :: raw -> Action io raw
   , focus :: Action io raw
   , blur :: Action io raw
+  , effect :: Effect Unit -> Action io raw
   }
-inputControlActions = { change: Change, focus: Focus, blur: Blur }
+inputControlActions = { change: Change, focus: Focus, blur: Blur, effect: Eff }
 
 data Action io raw
   = Focus
   | Blur
   | Change raw
   | Receive (Props io raw)
+  | Eff (Effect Unit)
+  | Composed (Action io raw) (Action io raw)
+
+instance name :: Semigroup (Action io raw) where
+  append = Composed
 
 _inputControl = Proxy :: Proxy "inputControl"
 
@@ -73,7 +77,7 @@ inputControlComponent =
       , props
       }
 
-  render { props, realValue } = props.render realValue
+  render { props, focus, realValue } = props.render focus realValue
 
   handleAction = case _ of
     Focus -> H.modify_ _ { focus = true }
@@ -91,3 +95,5 @@ inputControlComponent =
             state { props = props, validValue = x }
           else
             state { props = props, validValue = x, realValue = x }
+    Eff eff -> H.liftEffect eff
+    Composed action1 action2 -> handleAction action1 <> handleAction action2

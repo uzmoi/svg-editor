@@ -2,10 +2,13 @@ module SvgEditor.Layer
   ( Fill
   , FillRule(..)
   , Layer
+  , Attr
   , Stroke
   , defaultFill
+  , defaultAttr
   , defaultStroke
   , fillRule
+  , layer
   ) where
 
 import Prelude
@@ -13,16 +16,40 @@ import Halogen.HTML as H
 import Halogen.HTML.Properties (IProp, attr)
 import Halogen.Svg.Attributes.StrokeLineCap (StrokeLineCap(..))
 import Halogen.Svg.Attributes.StrokeLineJoin (StrokeLineJoin(..))
-import SvgEditor.PathCommand (PathCommand)
+import SvgEditor.PathCommandBlock (PathCommandBlock)
 
 type Layer
-  = { id :: Int
+  = { id :: String
     , name :: String
     , show :: Boolean
-    , drawPath :: Array PathCommand
+    , drawPath :: Array PathCommandBlock
     , fill :: Fill
     , stroke :: Stroke
+    , attr :: Attr
     }
+
+layer :: String -> Array PathCommandBlock -> Layer
+layer id drawPath =
+  { id
+  , name: "Layer"
+  , show: true
+  , drawPath
+  , fill: defaultFill
+  , stroke: defaultStroke
+  , attr: defaultAttr
+  }
+
+-- Attr
+type Attr
+  = { id :: String
+    , class :: String
+    }
+
+defaultAttr :: Attr
+defaultAttr =
+  { id: ""
+  , class: ""
+  }
 
 -- Fill
 type Fill

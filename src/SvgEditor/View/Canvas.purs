@@ -6,7 +6,7 @@ module SvgEditor.View.Canvas
 
 import Prelude
 import Data.Array (filter, find)
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe, maybe)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -20,8 +20,10 @@ import SvgEditor.Vec (Vec2, vec2)
 import SvgEditor.Canvas (Canvas)
 import SvgEditor.Layer (Layer)
 import SvgEditor.PathCommand (PathCommand)
+import SvgEditor.Define (Gradient)
 import SvgEditor.View.Canvas.Layer (svgLayer)
 import SvgEditor.View.Canvas.Overlay (overlayPoints, overlayLines)
+import SvgEditor.View.Canvas.Define (defines)
 
 type RefImage
   = { uri :: String
@@ -50,27 +52,31 @@ transform translate scale =
     <> ("scale(" <> show scale <> ")")
 
 svgCanvas ::
-  forall a b c.
-  { dragStart :: Int -> (Vec2 Number -> PathCommand) -> b
+  forall a b c d.
+  { dragStart :: String -> (Vec2 Number -> PathCommand) -> b
   , addCommand :: Int -> b
   } ->
   Number ->
   { translate :: Vec2 Number
-  , canvas :: Canvas
   , refImage :: RefImage
-  , layers :: Array Layer
-  , selectedLayer :: Int
+  , selected :: Maybe { layerId :: String | d }
   | c
   } ->
+  { canvas :: Canvas
+  , layers :: Array Layer
+  , defines :: Array Gradient
+  } ->
   HH.HTML a b
-svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
+svgCanvas actions scale { translate, refImage, selected } svg =
   HH.div
     [ HP.ref canvasContainerRef
     , HP.class_ $ HH.ClassName "canvas-container"
     , HP.style $ "--checker-size:" <> show (size * 80.0) <> "px;"
         <> transform translate scale
     ]
-    [ HSE.svg (canvasProps canvas) $ layers # filter _.show # map svgLayer
+    [ HSE.svg (canvasProps svg.canvas)
+        $ (svg.layers # filter _.show # map svgLayer)
+        <> [ defines svg.defines ]
     , HH.div
         [ HP.class_ $ HH.ClassName "ref-image-container" ]
         [ HH.div
@@ -83,12 +89,11 @@ svgCanvas actions scale { translate, canvas, refImage, layers, selectedLayer } =
             []
         ]
     , HSE.svg
-        (canvasProps canvas <> [ class_ $ HH.ClassName "overlay" ])
-        ( layers # find (_.id >>> (==) selectedLayer)
-            # maybe [] \layer ->
-                overlayLines actions.addCommand size layer.drawPath
-                  <> overlayPoints actions.dragStart size layer.drawPath
-        )
+        (canvasProps svg.canvas <> [ class_ $ HH.ClassName "overlay" ])
+        $ (selected >>= \{ layerId } -> svg.layers # find (_.id >>> (==) layerId))
+        # maybe [] \layer ->
+            overlayLines actions.addCommand size layer.drawPath
+              <> overlayPoints actions.dragStart size layer.drawPath
     ]
   where
   size = 1.0 / scale

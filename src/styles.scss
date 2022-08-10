@@ -113,6 +113,7 @@
     @extend %abs0;
   }
   .ref-image {
+    image-rendering: pixelated;
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -136,8 +137,9 @@
 }
 
 .right-panel {
+  display: flex;
+  flex-direction: column;
   width: 16em;
-  box-shadow: 0 0 1em gray;
   background-color: var(--bg-primary);
   z-index: 1000;
 }
@@ -155,6 +157,11 @@
   width: 100%;
   border: 0;
   padding: 0.4em;
+}
+
+.layer-list ul {
+  overflow-y: scroll;
+  height: 16em;
 }
 
 .layer-list ul li {
@@ -179,8 +186,13 @@
 }
 
 .layer-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
   user-select: none;
-  padding: 0.8em;
+  .layer-profile {
+    padding: 0.8em;
+  }
   .layer-name-input {
     padding: 0.3em;
     width: 100%;
@@ -211,9 +223,29 @@
       margin-left: 0;
     }
   }
+  label {
+    display: inline-block;
+    input[type="radio"][name="layer-info-tab"] {
+      display: none;
+    }
+    span {
+      display: inline-block;
+      padding: 0.4em;
+      line-height: 1;
+      background-color: var(--bg-secondary);
+      &.radio-selected {
+        background-color: var(--accent);
+      }
+    }
+  }
+  .layer-info-tab-contents {
+    flex: 1 0 0;
+    padding: 0.8em;
+    overflow-y: auto;
+  }
 }
 
-.draw-path-commands li > div > div {
+.command > .points {
   display: inline-block;
   padding-left: 1em;
 }

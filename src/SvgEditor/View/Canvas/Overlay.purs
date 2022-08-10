@@ -64,38 +64,37 @@ overlayCommandPath ::
   , overlayPath :: Array (Array PathCommand)
   }
 overlayCommandPath ctx =
-  let
-    pos = nextPoint ctx
-  in
-    { command: ctx.command
-    , overlayPath:
-        case ctx.command of
-          Move _ -> []
-          Line v -> [ [ Move pos, Line v ] ]
-          Bez2' v1 ->
-            let
-              pos1 = case ctx.prev of
-                Bez2 v1' v2' -> v1' - v2'
-                _ -> zero
-            in
-              [ [ Move pos, Bez2 (pos - pos1) v1 ] ]
-          Bez2 v1 v2 ->
-            [ [ Move pos, Line v1, Line v2 ]
-            , [ Move pos, Bez2 v1 v2 ]
+  { command: ctx.command
+  , overlayPath:
+      case ctx.command of
+        Move _ -> []
+        Line v -> [ [ Move pos, Line v ] ]
+        Bez2' v1 ->
+          let
+            pos1 = case ctx.prev of
+              Bez2 v1' v2' -> v1' - v2'
+              _ -> zero
+          in
+            [ [ Move pos, Bez2 (pos - pos1) v1 ] ]
+        Bez2 v1 v2 ->
+          [ [ Move pos, Line v1, Line v2 ]
+          , [ Move pos, Bez2 v1 v2 ]
+          ]
+        Bez3' v1 v2 ->
+          let
+            pos1 = case ctx.prev of
+              Bez3 _ v2' v3' -> v2' - v3'
+              _ -> zero
+          in
+            [ [ Move v1, Line v2 ]
+            , [ Move pos, Bez3 (pos - pos1) v1 v2 ]
             ]
-          Bez3' v1 v2 ->
-            let
-              pos1 = case ctx.prev of
-                Bez3 _ v2' v3' -> v2' - v3'
-                _ -> zero
-            in
-              [ [ Move v1, Line v2 ]
-              , [ Move pos, Bez3 (pos - pos1) v1 v2 ]
-              ]
-          Bez3 v1 v2 v3 ->
-            [ [ Move pos, Line v1 ]
-            , [ Move v2, Line v3 ]
-            , [ Move pos, Bez3 v1 v2 v3 ]
-            ]
-          Close -> [ [ Move pos, Line ctx.origin ] ]
-    }
+        Bez3 v1 v2 v3 ->
+          [ [ Move pos, Line v1 ]
+          , [ Move v2, Line v3 ]
+          , [ Move pos, Bez3 v1 v2 v3 ]
+          ]
+        Close -> [ [ Move pos, Line ctx.origin ] ]
+  }
+  where
+  pos = nextPoint ctx

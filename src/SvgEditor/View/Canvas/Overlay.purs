@@ -63,18 +63,18 @@ overlayCommandPath ::
   { command :: PathCommand
   , overlayPath :: Array (Array PathCommand)
   }
-overlayCommandPath { origin, command, prev } =
+overlayCommandPath ctx =
   let
-    pos = nextPoint prev
+    pos = nextPoint ctx
   in
-    { command
+    { command: ctx.command
     , overlayPath:
-        case command of
+        case ctx.command of
           Move _ -> []
           Line v -> [ [ Move pos, Line v ] ]
           Bez2' v1 ->
             let
-              pos1 = case prev of
+              pos1 = case ctx.prev of
                 Bez2 v1' v2' -> v1' - v2'
                 _ -> zero
             in
@@ -85,7 +85,7 @@ overlayCommandPath { origin, command, prev } =
             ]
           Bez3' v1 v2 ->
             let
-              pos1 = case prev of
+              pos1 = case ctx.prev of
                 Bez3 _ v2' v3' -> v2' - v3'
                 _ -> zero
             in
@@ -97,5 +97,5 @@ overlayCommandPath { origin, command, prev } =
             , [ Move v2, Line v3 ]
             , [ Move pos, Bez3 v1 v2 v3 ]
             ]
-          Close -> [ [ Move pos, Line origin ] ]
+          Close -> [ [ Move pos, Line ctx.origin ] ]
     }

@@ -68,15 +68,15 @@ commandName = case _ of
   Bez2' _ -> "Bezier2"
   Close -> "Close"
 
-nextPoint :: PathCommand -> Vec2 Number
-nextPoint = case _ of
+nextPoint :: PathCommandContext -> Vec2 Number
+nextPoint ctx = case ctx.command of
   Move v -> v
   Line v -> v
   Bez3 _ _ v -> v
   Bez3' _ v -> v
   Bez2 _ v -> v
   Bez2' v -> v
-  Close -> zero
+  Close -> ctx.origin
 
 points :: PathCommand -> Array (Tuple (Vec2 Number) (Vec2 Number -> PathCommand))
 points = case _ of

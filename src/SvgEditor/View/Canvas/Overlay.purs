@@ -12,7 +12,7 @@ import Halogen.Svg.Elements as HSE
 import Halogen.Svg.Attributes as HSA
 import Halogen.Svg.Attributes (Color(..))
 import SvgEditor.Vec (Vec2(..))
-import SvgEditor.PathCommand (PathCommand(..), PathCommandContext, points, nextPoint, pathCommandContext, toHalogenPathCommand, commandName)
+import SvgEditor.PathCommand (PathCommand(..), PathCommandContext, points, startingPoint, pathCommandContext, toHalogenPathCommand, commandName)
 import SvgEditor.PathCommandBlock (PathCommandBlock)
 
 overlayPoint ::
@@ -97,4 +97,4 @@ overlayCommandPath ctx =
         Close -> [ [ Move pos, Line ctx.origin ] ]
   }
   where
-  pos = nextPoint ctx
+  pos = startingPoint ctx

@@ -3,10 +3,10 @@ module SvgEditor.PathCommand
   , PathCommandContext
   , PathCommandType(..)
   , commandName
-  , nextPoint
   , pathCommand
   , pathCommandContext
   , points
+  , startingPoint
   , toHalogenPathCommand
   ) where
 
@@ -68,8 +68,8 @@ commandName = case _ of
   Bez2' _ -> "Bezier2"
   Close -> "Close"
 
-nextPoint :: PathCommandContext -> Vec2 Number
-nextPoint ctx = case ctx.command of
+startingPoint :: PathCommandContext -> Vec2 Number
+startingPoint ctx = case ctx.prev of
   Move v -> v
   Line v -> v
   Bez3 _ _ v -> v

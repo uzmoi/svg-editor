@@ -2,19 +2,27 @@
   "private": true,
   "name": "svg-editor",
   "scripts": {
-    "build": "spago bundle-app --to output/build.js && vite build",
-    "dev:spago": "spago build -wx",
-    "dev:vite": "> output/build.js && vite",
-    "dev": "notios dev:spago dev:vite",
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview",
-    "test": "spago test"
+    "build:purs": "spago bundle-app --to output/build.js && vite build",
+    "dev:purs:spago": "spago build -wx",
+    "dev:purs:vite": "> output/build.js && vite",
+    "dev:purs": "notios dev:purs:spago dev:purs:vite",
+    "test:purs": "spago test"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^1.0.1",
+    "@tsconfig/svelte": "^3.0.0",
     "notios": "^0.4.0",
     "purescript": "^0.15.2",
     "purty": "^7.0.0",
-    "sass": "^1.53.0",
+    "sass": "^1.54.4",
     "spago": "^0.20.9",
-    "vite": "^2.9.11"
+    "svelte": "^3.49.0",
+    "svelte-check": "^2.8.0",
+    "svelte-preprocess": "^4.10.7",
+    "typescript": "^4.7.4",
+    "vite": "^3.0.7"
   }
 }

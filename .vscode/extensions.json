@@ -3,5 +3,6 @@
         "nwolverson.ide-purescript",
         "nwolverson.language-purescript",
         "mvakula.vscode-purty",
+        "svelte.svelte-vscode",
     ]
 }

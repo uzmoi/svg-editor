@@ -50,7 +50,7 @@
   }
   .main {
     display: flex;
-    height: 100%;
+    flex-grow: 1;
   }
   .center-panel {
     flex-grow: 1;

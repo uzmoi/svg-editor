@@ -1,12 +1,13 @@
 <script lang="ts">
+  import { scale, translate } from "../store/canvas-transform";
+
   export let container: HTMLDivElement = undefined;
 
-  // temp
-  const scale = 80; // %
-  const translate = { x: 10, y: 30 }; // px
-
-  const size = 100 / scale;
-  const transform = `translate(${translate.x}px, ${translate.y}px) scale(${scale / 100})`;
+  $: size = 100 / $scale;
+  $: transform = [
+    `translate(${$translate.x}px, ${$translate.y}px)`,
+    `scale(${$scale / 100})`,
+  ].join(" ");
 </script>
 
 <div

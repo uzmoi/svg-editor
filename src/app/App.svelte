@@ -1,10 +1,14 @@
+<script lang="ts">
+  import Canvas from "./canvas/Canvas.svelte";
+</script>
+
 <div class="root">
   <div class="header">
     <!-- header -->
   </div>
   <div class="main">
     <div class="center-panel">
-      <!-- canvas -->
+      <Canvas />
     </div>
     <div class="right-panel">
       <!-- layer info -->

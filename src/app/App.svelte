@@ -1,10 +1,11 @@
 <script lang="ts">
+  import Header from "./Header.svelte";
   import Canvas from "./canvas/Canvas.svelte";
 </script>
 
 <div class="root">
   <div class="header">
-    <!-- header -->
+    <Header />
   </div>
   <div class="main">
     <div class="center-panel">

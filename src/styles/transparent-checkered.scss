@@ -1,5 +1,6 @@
 .transparent-checkered {
-  $check: linear-gradient(45deg, #fff 25%, transparent 25% 75%, #fff 75%);
+  // 0.01%は隙間を消すため(25%だとサイズによってはできてしまうことがある)
+  $check: linear-gradient(45deg, #fff 25.01%, transparent 25% 75%, #fff 75%);
   --checker-size: 1em;
   background-image: $check, $check;
   background-position: 0 0, calc(var(--checker-size) / 2) calc(var(--checker-size) / 2);

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { scale, translate } from "../store/canvas-transform";
+  import { svgSize } from "../store/svg";
 
   export let container: HTMLDivElement = undefined;
 
@@ -16,10 +17,10 @@
   style:--checker-size="{size * 80}px"
   style:transform
 >
-  <svg class="canvas">
+  <svg class="canvas" width={$svgSize.width} height={$svgSize.height}>
     <!-- canvas -->
   </svg>
-  <svg class="overlay-canvas">
+  <svg class="overlay-canvas" width={$svgSize.width} height={$svgSize.height}>
     <!-- overlay -->
   </svg>
 </div>
@@ -41,9 +42,6 @@
   }
   svg {
     vertical-align: top;
-    // temp
-    width: 100px;
-    height: 100px;
   }
   .canvas {
     position: static;

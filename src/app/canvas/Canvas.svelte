@@ -1,6 +1,7 @@
 <script lang="ts">
   import { scale, translate } from "../store/canvas-transform";
-  import { svgSize } from "../store/svg";
+  import { layers, svgSize } from "../store/svg";
+  import Layer from "./Layer.svelte";
 
   export let container: HTMLDivElement = undefined;
 
@@ -18,7 +19,10 @@
   style:transform
 >
   <svg class="canvas" width={$svgSize.width} height={$svgSize.height}>
-    <!-- canvas -->
+    {#each $layers.filter(layer => layer.show) as layer}
+      <Layer {layer} />
+    {/each}
+    <!-- defines -->
   </svg>
   <svg class="overlay-canvas" width={$svgSize.width} height={$svgSize.height}>
     <!-- overlay -->

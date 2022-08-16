@@ -14,7 +14,7 @@ export interface Layer {
 
 export const layer = (id: string, path: readonly PathItem[]): Layer => ({
   id,
-  name: "Layer",
+  name: `Layer (${id})`,
   show: true,
   path,
 });

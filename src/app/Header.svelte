@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Vec2 } from "../lib/vec";
+  import type { Vec2 } from "~/lib/vec";
 
   export let cursorPos: Vec2<number>;
 </script>

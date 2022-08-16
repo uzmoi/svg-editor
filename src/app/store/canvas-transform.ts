@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 import { clamp } from "emnorst";
-import { Vec2 } from "../../lib/vec";
+import { Vec2 } from "~/lib/vec";
 
 const MIN_SCALE = 100 / 96; // %
 const MAX_SCALE = 12800; // %

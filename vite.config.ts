@@ -5,6 +5,9 @@ import sveltePreprocess from "svelte-preprocess";
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "/svg-editor/",
+  resolve: {
+    alias: { "~/": `${__dirname}/src/` },
+  },
   plugins: [
     svelte({
       preprocess: sveltePreprocess(),

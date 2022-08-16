@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Vec2 } from "../lib/vec";
+  import { Vec2 } from "~/lib/vec";
   import Header from "./Header.svelte";
   import Canvas from "./canvas/Canvas.svelte";
   import { changeScale, translate } from "./store/canvas-transform";

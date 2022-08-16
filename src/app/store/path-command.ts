@@ -1,4 +1,4 @@
-import type { Vec2 } from "../../lib/vec";
+import type { Vec2 } from "~/lib/vec";
 
 export type PathCommand =
   | { type: "M"; to: Vec2<number> }

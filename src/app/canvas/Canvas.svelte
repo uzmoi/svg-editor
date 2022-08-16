@@ -3,7 +3,7 @@
   import { layers, svgSize } from "../store/svg";
   import Layer from "./Layer.svelte";
 
-  export let container: HTMLDivElement = undefined;
+  export let container: HTMLDivElement | undefined = undefined;
 
   $: size = 100 / $scale;
   $: transform = [

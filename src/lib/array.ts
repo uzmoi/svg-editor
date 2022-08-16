@@ -21,3 +21,6 @@ export const moveEl = <T>(arr: readonly T[], i: number, j: number, count = 1) =>
     arr.splice(j, 0, ...arr.splice(i, count));
   });
 };
+
+export const modifyById = <T extends { id: unknown }>(arr: readonly T[], el: T) =>
+  arr.map(x => (x.id === el.id ? el : x));

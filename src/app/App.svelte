@@ -3,6 +3,7 @@
   import Header from "./Header.svelte";
   import Canvas from "./canvas/Canvas.svelte";
   import { changeScale, translate } from "./store/canvas-transform";
+  import LayerList from "./info/LayerList.svelte";
 
   let canvasContainer: HTMLDivElement;
 
@@ -70,7 +71,9 @@
       <Canvas bind:container={canvasContainer} />
     </div>
     <div class="right-panel">
-      <!-- layer info -->
+      <div class="layer-list">
+        <LayerList />
+      </div>
     </div>
   </div>
 </div>
@@ -120,5 +123,9 @@
     flex-direction: column;
     width: 16em;
     background-color: var(--bg-primary);
+  }
+  .layer-list {
+    overflow-y: scroll;
+    height: 16em;
   }
 </style>

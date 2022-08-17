@@ -2,6 +2,7 @@
   import Radio from "~/lib/radio/Radio.svelte";
   import RadioGroup from "~/lib/radio/RadioGroup.svelte";
   import { selectedLayer } from "../store/selection";
+  import Path from "./Path.svelte";
 
   const tabs = ["Styles", "Commands", "Attributes"] as const;
   let tab: typeof tabs[number] = "Styles";
@@ -31,7 +32,7 @@
     {#if tab === "Styles"}
       Styles
     {:else if tab === "Commands"}
-      Commands
+      <Path path={$selectedLayer.path} />
     {:else if tab === "Attributes"}
       Attributes
     {/if}

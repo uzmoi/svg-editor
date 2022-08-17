@@ -1,3 +1,4 @@
+import { has } from "emnorst";
 import type { Vec2 } from "~/lib/vec";
 
 export type PathCommand =
@@ -61,4 +62,18 @@ export const printPathCommand = (command: PathCommand): string => {
     case "Close":
       return "Z";
   }
+};
+
+export const getPoints = (command: PathCommand): ["v1" | "v2" | "to", Vec2<number>][] => {
+  const points: ["v1" | "v2" | "to", Vec2<number>][] = [];
+  if (has(command, "v1") && command.v1 != null) {
+    points.push(["v1", command.v1]);
+  }
+  if (has(command, "v2") && command.v2 != null) {
+    points.push(["v2", command.v2]);
+  }
+  if (has(command, "to")) {
+    points.push(["to", command.to]);
+  }
+  return points;
 };

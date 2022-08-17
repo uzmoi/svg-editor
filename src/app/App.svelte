@@ -95,6 +95,7 @@
       --bg-secondary: #ddd;
       --accent: #88d;
       --text: #333;
+      --pale-text: #666;
       --error: #d44;
     }
     @media (prefers-color-scheme: dark) {
@@ -102,6 +103,7 @@
       --bg-secondary: #222;
       --accent: #448;
       --text: #eee;
+      --pale-text: #bbb;
       --error: #c44;
     }
 

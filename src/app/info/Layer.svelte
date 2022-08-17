@@ -53,7 +53,7 @@
     padding: 0.2em;
     padding-inline: 0.5em;
     transition: 0.4s;
-    border-bottom: 0.2em solid #bbb;
+    border-bottom: 0.2em solid var(--pale-text);
     &[data-selected="true"] {
       border-color: var(--accent);
     }

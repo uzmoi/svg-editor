@@ -4,6 +4,7 @@
   import Canvas from "./canvas/Canvas.svelte";
   import { changeScale, translate } from "./store/canvas-transform";
   import LayerList from "./info/LayerList.svelte";
+  import Layer from "./info/Layer.svelte";
 
   let canvasContainer: HTMLDivElement;
 
@@ -74,6 +75,9 @@
       <div class="layer-list">
         <LayerList />
       </div>
+      <div class="layer-info">
+        <Layer />
+      </div>
     </div>
   </div>
 </div>
@@ -113,9 +117,9 @@
   .main {
     display: flex;
     flex-grow: 1;
-  }
-  .center-panel {
-    flex-grow: 1;
+    > .center-panel {
+      flex-grow: 1;
+    }
   }
   .right-panel {
     z-index: 1;
@@ -123,9 +127,12 @@
     flex-direction: column;
     width: 16em;
     background-color: var(--bg-primary);
-  }
-  .layer-list {
-    overflow-y: scroll;
-    height: 16em;
+    > .layer-list {
+      overflow-y: scroll;
+      height: 16em;
+    }
+    > .layer-info {
+      flex-grow: 1;
+    }
   }
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "~/lib/Icon.svelte";
   import Radio from "~/lib/radio/Radio.svelte";
   import RadioGroup from "~/lib/radio/RadioGroup.svelte";
   import { selectedLayer } from "../store/selection";
@@ -11,8 +12,8 @@
 {#if $selectedLayer != null}
   <div class="layer-profile">
     <input type="text" class="layer-name-input" value={$selectedLayer.name} />
-    <button>
-      <!-- <Icon name="delete" /> -->
+    <button class="delete-button">
+      <Icon name="delete" />
     </button>
   </div>
   <RadioGroup name="layer-info-tab" bind:value={tab}>
@@ -42,6 +43,12 @@
 <style lang="scss">
   .layer-profile {
     padding: 0.8em;
+  }
+  .delete-button {
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    font-size: 1em;
   }
   .tabs {
     display: flex;

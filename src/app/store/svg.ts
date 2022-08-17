@@ -15,7 +15,7 @@ export interface BoxSize {
 
 export interface SvgState {
   size: BoxSize;
-  layers: Layer[];
+  layers: readonly Layer[];
 }
 
 export const svg = writable<SvgState>({

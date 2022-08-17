@@ -2,6 +2,7 @@
   import { modifyById } from "~/lib/array";
   import SortableList from "~/lib/SortableList.svelte";
   import type { Layer } from "../store/layer";
+  import { selectedLayerId } from "../store/selection";
   import { layers, svg } from "../store/svg";
 
   const setLayers = (layers: readonly Layer[]) => {
@@ -19,8 +20,14 @@
   let:value={layer}
   let:mousedown
 >
-  <div class="layer">
-    <p>{layer.name}</p>
+  <div class="layer" data-selected={layer.id === $selectedLayerId}>
+    <p
+      on:click={() => {
+        $selectedLayerId = layer.id;
+      }}
+    >
+      {layer.name}
+    </p>
     <button on:click={() => toggleShow(layer)}>
       <!-- <Icon name={layer.show ? "visibility" : "visibility_off"} /> -->
     </button>
@@ -35,6 +42,9 @@
     display: flex;
     > :first-child {
       flex-grow: 1;
+    }
+    &[data-selected="true"] {
+      background-color: var(--accent);
     }
   }
 </style>

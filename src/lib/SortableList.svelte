@@ -15,13 +15,14 @@
   let containerEl: HTMLUListElement;
   let draggingIndex = -1;
   let dropDestinationIndex = -1;
+  let dragHandleOffset = 0;
   let dragOffset = 0;
   let draggingElementHeight = 0;
 
   const handleMouseMove = (e: MouseEvent) => {
     if (draggingIndex === -1) return;
     const canvasRect = containerEl.getBoundingClientRect();
-    const offsetY = e.clientY - canvasRect.top;
+    const offsetY = e.clientY - canvasRect.top - dragHandleOffset;
     const children = Array.from(containerEl.children) as HTMLLIElement[];
     const draggingElementTop = children[draggingIndex].offsetTop - containerEl.offsetTop;
     dragOffset = clamp(offsetY, 0, canvasRect.height) - draggingElementTop;
@@ -32,10 +33,14 @@
     // -1の場合は最後の要素(length - 1)にする
     dropDestinationIndex = (i + children.length) % children.length;
   };
-  const handleMouseDown = (index: number) => {
+  type MouseEventOnHTMLElement = MouseEvent & { currentTarget: HTMLElement };
+  const handleMouseDown = (index: number) => (e: MouseEventOnHTMLElement) => {
     dropDestinationIndex = draggingIndex = index;
     const dragElement = containerEl.children[draggingIndex] as HTMLLIElement;
     draggingElementHeight = dragElement.offsetHeight;
+    const dragHandleElement = e.currentTarget;
+    const dragHandleElementTop = dragHandleElement.offsetTop - dragElement.offsetTop;
+    dragHandleOffset = dragHandleElementTop + dragHandleElement.clientHeight / 2;
   };
   const handleMouseUp = () => {
     dispath("change", moveEl(values, draggingIndex, dropDestinationIndex));
@@ -68,7 +73,7 @@
       data-transform={itemState(index)}
       style:--drag-offset={draggingIndex === index ? dragOffset + "px" : undefined}
     >
-      <slot {value} {index} mousedown={() => handleMouseDown(index)} />
+      <slot {value} {index} mousedown={handleMouseDown(index)} />
     </li>
   {/each}
 </ul>

@@ -34,14 +34,6 @@
 </SortableList>
 
 <style lang="scss">
-  %counteract-drag-handle-misalignment {
-    :global([data-transform="dragging"]) & {
-      transform: translateY(-12px);
-    }
-  }
-  .path-item {
-    @extend %counteract-drag-handle-misalignment;
-  }
   .path-item-header {
     display: flex;
     font-size: 0.9em;
@@ -53,7 +45,6 @@
     padding-left: 1em;
   }
   .add-path-item-button {
-    @extend %counteract-drag-handle-misalignment;
     border: none;
     background-color: transparent;
     color: var(--pale-text);

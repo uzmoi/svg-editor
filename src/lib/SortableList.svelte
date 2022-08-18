@@ -23,9 +23,7 @@
     const canvasRect = containerEl.getBoundingClientRect();
     const offsetY = e.clientY - canvasRect.top;
     const children = Array.from(containerEl.children) as HTMLLIElement[];
-    const draggingElementTop = children
-      .slice(0, draggingIndex)
-      .reduce((accum, element) => accum + element.offsetHeight, 0);
+    const draggingElementTop = children[draggingIndex].offsetTop - containerEl.offsetTop;
     dragOffset = clamp(offsetY, 0, canvasRect.height) - draggingElementTop;
     const i = children.findIndex(element => {
       const elementTop = element.offsetTop - containerEl.offsetTop;

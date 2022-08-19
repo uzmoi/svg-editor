@@ -1,5 +1,6 @@
 <script lang="ts">
   import { modifyById } from "~/lib/array";
+  import DragHandle from "~/lib/DragHandle.svelte";
   import Icon from "~/lib/Icon.svelte";
   import SortableList from "~/lib/SortableList.svelte";
   import type { Layer } from "../store/layer";
@@ -32,9 +33,7 @@
     <button class="show-button" on:click={() => toggleShow(layer)}>
       <Icon name={layer.show ? "visibility" : "visibility_off"} />
     </button>
-    <span on:mousedown={mousedown}>
-      <Icon name="drag_handle" />
-    </span>
+    <DragHandle {mousedown} />
   </div>
 </SortableList>
 

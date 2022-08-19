@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from "~/lib/Icon.svelte";
+  import DragHandle from "~/lib/DragHandle.svelte";
   import SortableList from "~/lib/SortableList.svelte";
   import type { PathItem } from "../store/layer";
   import { getPoints } from "../store/path-command";
@@ -17,9 +17,7 @@
   <div class="path-item">
     <div class="path-item-header">
       <p>{pathItem.command.type}</p>
-      <p class="drag-handle" on:mousedown={mousedown}>
-        <Icon name="drag_handle" />
-      </p>
+      <DragHandle {mousedown} />
     </div>
     <ul class="path-item-points">
       {#each getPoints(pathItem.command) as [_pointKey, point]}

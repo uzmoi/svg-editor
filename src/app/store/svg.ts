@@ -1,4 +1,5 @@
 import { derived, writable } from "svelte/store";
+import { selector } from "~/lib/store/selector";
 import type { Layer } from "./layer";
 
 export interface Bounds {
@@ -25,4 +26,10 @@ export const svg = writable<SvgState>({
 
 export const svgSize = derived(svg, svg => svg.size);
 
-export const layers = derived(svg, svg => svg.layers);
+export const layers = selector(
+  svg,
+  svg => svg.layers,
+  layers => {
+    svg.update(svg => ({ ...svg, layers }));
+  },
+);

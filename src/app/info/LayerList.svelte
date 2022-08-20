@@ -5,20 +5,20 @@
   import SortableList from "~/lib/SortableList.svelte";
   import type { Layer } from "../store/layer";
   import { selectedLayerId } from "../store/selection";
-  import { layers, svg } from "../store/svg";
+  import { layers } from "../store/svg";
 
-  const setLayers = (layers: readonly Layer[]) => {
-    $svg = { ...$svg, layers };
-  };
   const toggleShow = (layer: Layer) => {
-    setLayers(modifyById($layers, { ...layer, show: !layer.show }));
+    $layers = modifyById($layers, { ...layer, show: !layer.show });
+  };
+  const handleChange = (e: CustomEvent<readonly Layer[]>) => {
+    $layers = e.detail;
   };
 </script>
 
 <SortableList
   values={$layers}
   key={layer => layer.id}
-  on:change={e => setLayers(e.detail)}
+  on:change={handleChange}
   let:value={layer}
   let:mousedown
 >

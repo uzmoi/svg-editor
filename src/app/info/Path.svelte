@@ -1,16 +1,21 @@
 <script lang="ts">
+  import type { Writable } from "svelte/store";
   import DragHandle from "~/lib/DragHandle.svelte";
   import SortableList from "~/lib/SortableList.svelte";
   import type { PathItem } from "../store/layer";
   import { getPoints } from "../store/path-command";
 
-  export let path: readonly PathItem[];
+  export let path: Writable<readonly PathItem[]>;
+
+  const handleChange = (e: CustomEvent<readonly PathItem[]>) => {
+    $path = e.detail;
+  };
 </script>
 
 <SortableList
-  values={path}
+  values={$path}
   key={pathItem => pathItem.id}
-  on:change={() => {}}
+  on:change={handleChange}
   let:value={pathItem}
   let:mousedown
 >

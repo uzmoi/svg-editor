@@ -2,11 +2,20 @@
   import Icon from "~/lib/Icon.svelte";
   import Radio from "~/lib/radio/Radio.svelte";
   import RadioGroup from "~/lib/radio/RadioGroup.svelte";
+  import { selector } from "~/lib/store/selector";
   import { selectedLayer } from "../store/selection";
   import Path from "./Path.svelte";
 
   const tabs = ["Styles", "Commands", "Attributes"] as const;
   let tab: typeof tabs[number] = "Styles";
+
+  const path = selector(
+    selectedLayer,
+    layer => layer!.path,
+    path => {
+      selectedLayer.update(layer => ({ ...layer!, path }));
+    },
+  );
 </script>
 
 {#if $selectedLayer != null}
@@ -33,7 +42,7 @@
     {#if tab === "Styles"}
       Styles
     {:else if tab === "Commands"}
-      <Path path={$selectedLayer.path} />
+      <Path {path} />
     {:else if tab === "Attributes"}
       Attributes
     {/if}

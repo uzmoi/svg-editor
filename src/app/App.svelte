@@ -5,6 +5,9 @@
   import { changeScale, translate } from "./store/canvas-transform";
   import LayerList from "./info/LayerList.svelte";
   import Layer from "./info/Layer.svelte";
+  import { layers } from "./store/svg";
+  import { layer } from "./store/layer";
+  import { randString } from "emnorst";
 
   let canvasContainer: HTMLDivElement;
 
@@ -50,6 +53,11 @@
     const isEnlarge = Math.sign(e.deltaY) === -1;
     changeScale(isEnlarge, offset);
   };
+
+  const addLayer = () => {
+    const id = randString(8);
+    $layers = [...$layers, layer(id)];
+  };
 </script>
 
 <svelte:window
@@ -74,6 +82,9 @@
     <div class="right-panel">
       <div class="layer-list">
         <LayerList />
+      </div>
+      <div class="layer-actions">
+        <button on:click={addLayer}>add layer</button>
       </div>
       <div class="layer-info">
         <Layer />

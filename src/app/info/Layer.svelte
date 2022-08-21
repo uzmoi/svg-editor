@@ -18,38 +18,45 @@
   );
 </script>
 
-{#if $selectedLayer != null}
-  <div class="layer-profile">
-    <input type="text" class="layer-name-input" value={$selectedLayer.name} />
-    <button class="delete-button">
-      <Icon name="delete" />
-    </button>
-  </div>
-  <RadioGroup name="layer-info-tab" bind:value={tab}>
-    <div class="tabs">
-      {#each tabs as value}
-        <div class="tab">
-          <Radio {value} let:selected>
-            <p class="tab-name" data-selected={selected}>
-              {value}
-            </p>
-          </Radio>
-        </div>
-      {/each}
+<div class="layer-info">
+  {#if $selectedLayer != null}
+    <div class="layer-profile">
+      <input type="text" class="layer-name-input" value={$selectedLayer.name} />
+      <button class="delete-button">
+        <Icon name="delete" />
+      </button>
     </div>
-  </RadioGroup>
-  <div class="tab-contents">
-    {#if tab === "Styles"}
-      Styles
-    {:else if tab === "Commands"}
-      <Path {path} />
-    {:else if tab === "Attributes"}
-      Attributes
-    {/if}
-  </div>
-{/if}
+    <RadioGroup name="layer-info-tab" bind:value={tab}>
+      <div class="tabs">
+        {#each tabs as value}
+          <div class="tab">
+            <Radio {value} let:selected>
+              <p class="tab-name" data-selected={selected}>
+                {value}
+              </p>
+            </Radio>
+          </div>
+        {/each}
+      </div>
+    </RadioGroup>
+    <div class="tab-contents">
+      {#if tab === "Styles"}
+        Styles
+      {:else if tab === "Commands"}
+        <Path {path} />
+      {:else if tab === "Attributes"}
+        Attributes
+      {/if}
+    </div>
+  {/if}
+</div>
 
 <style lang="scss">
+  .layer-info {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
   .layer-profile {
     padding: 0.8em;
   }
@@ -74,5 +81,10 @@
     &[data-selected="true"] {
       border-color: var(--accent);
     }
+  }
+  .tab-contents {
+    flex: 1 0 0;
+    overflow-y: auto;
+    padding: 0.8em;
   }
 </style>

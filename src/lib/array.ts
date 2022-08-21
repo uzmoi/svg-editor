@@ -24,3 +24,27 @@ export const moveEl = <T>(arr: readonly T[], i: number, j: number, count = 1) =>
 
 export const modifyById = <T extends { id: unknown }>(arr: readonly T[], el: T) =>
   arr.map(x => (x.id === el.id ? el : x));
+
+export const deletedAt = <T extends unknown>(xs: readonly T[], i: number) =>
+  xs.imm(xs => {
+    xs.splice(i, 1);
+  });
+
+export const insertAt = <T extends unknown>(xs: readonly T[], i: number, x: T) =>
+  xs.imm(xs => {
+    xs.splice(i, 0, x);
+  });
+
+export const updatedAt = <T extends unknown>(xs: readonly T[], i: number, x: T) =>
+  xs.imm(xs => {
+    xs.splice(i, 1, x);
+  });
+
+export const replacedAt = <T extends unknown>(
+  xs: readonly T[],
+  i: number,
+  zs: readonly T[],
+) =>
+  xs.imm(xs => {
+    xs.splice(i, zs.length, ...zs);
+  });

@@ -19,7 +19,12 @@
 
 <style lang="scss">
   input {
-    opacity: 0;
     position: absolute;
+    opacity: 0;
+    z-index: -1;
+  }
+  label {
+    user-select: none;
+    cursor: pointer;
   }
 </style>

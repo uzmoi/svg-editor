@@ -8,6 +8,8 @@
   import { layers } from "./store/svg";
   import { layer } from "./store/layer";
   import { randString } from "emnorst";
+  import { selectedLayer } from "./store/selection";
+  import type { Writable } from "svelte/store";
 
   let canvasContainer: HTMLDivElement;
 
@@ -58,6 +60,9 @@
     const id = randString(8);
     $layers = [...$layers, layer(id)];
   };
+
+  const asNonNullStore = <T extends unknown>(store: Writable<T | null>) =>
+    store as Writable<T>;
 </script>
 
 <svelte:window
@@ -87,7 +92,9 @@
         <button on:click={addLayer}>add layer</button>
       </div>
       <div class="layer-info">
-        <Layer />
+        {#if $selectedLayer != null}
+          <Layer layer={asNonNullStore(selectedLayer)} />
+        {/if}
       </div>
     </div>
   </div>

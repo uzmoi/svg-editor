@@ -1,54 +1,55 @@
 <script lang="ts">
+  import type { Writable } from "svelte/store";
   import Icon from "~/lib/Icon.svelte";
   import Radio from "~/lib/radio/Radio.svelte";
   import RadioGroup from "~/lib/radio/RadioGroup.svelte";
   import { selector } from "~/lib/store/selector";
-  import { selectedLayer } from "../store/selection";
+  import type { Layer } from "../store/layer";
   import Path from "./Path.svelte";
+
+  export let layer: Writable<Layer>;
 
   const tabs = ["Styles", "Commands", "Attributes"] as const;
   let tab: typeof tabs[number] = "Styles";
 
   const path = selector(
-    selectedLayer,
-    layer => layer!.path,
+    layer,
+    layer => layer.path,
     path => {
-      selectedLayer.update(layer => ({ ...layer!, path }));
+      layer.update(layer => ({ ...layer, path }));
     },
   );
 </script>
 
 <div class="layer-info">
-  {#if $selectedLayer != null}
-    <div class="layer-profile">
-      <input type="text" class="layer-name-input" value={$selectedLayer.name} />
-      <button class="delete-button">
-        <Icon name="delete" />
-      </button>
+  <div class="layer-profile">
+    <input type="text" class="layer-name-input" value={$layer.name} />
+    <button class="delete-button">
+      <Icon name="delete" />
+    </button>
+  </div>
+  <RadioGroup name="layer-info-tab" bind:value={tab}>
+    <div class="tabs">
+      {#each tabs as value}
+        <div class="tab">
+          <Radio {value} let:selected>
+            <p class="tab-name" data-selected={selected}>
+              {value}
+            </p>
+          </Radio>
+        </div>
+      {/each}
     </div>
-    <RadioGroup name="layer-info-tab" bind:value={tab}>
-      <div class="tabs">
-        {#each tabs as value}
-          <div class="tab">
-            <Radio {value} let:selected>
-              <p class="tab-name" data-selected={selected}>
-                {value}
-              </p>
-            </Radio>
-          </div>
-        {/each}
-      </div>
-    </RadioGroup>
-    <div class="tab-contents">
-      {#if tab === "Styles"}
-        Styles
-      {:else if tab === "Commands"}
-        <Path {path} />
-      {:else if tab === "Attributes"}
-        Attributes
-      {/if}
-    </div>
-  {/if}
+  </RadioGroup>
+  <div class="tab-contents">
+    {#if tab === "Styles"}
+      Styles
+    {:else if tab === "Commands"}
+      <Path {path} />
+    {:else if tab === "Attributes"}
+      Attributes
+    {/if}
+  </div>
 </div>
 
 <style lang="scss">

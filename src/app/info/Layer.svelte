@@ -19,11 +19,20 @@
       layer.update(layer => ({ ...layer, path }));
     },
   );
+
+  const handleChangeName: svelte.JSX.FormEventHandler<HTMLInputElement> = e => {
+    layer.update(layer => ({ ...layer, name: e.currentTarget.value }));
+  };
 </script>
 
 <div class="layer-info">
   <div class="layer-profile">
-    <input type="text" class="layer-name-input" value={$layer.name} />
+    <input
+      type="text"
+      class="layer-name-input"
+      value={$layer.name}
+      on:input={handleChangeName}
+    />
     <button class="delete-button">
       <Icon name="delete" />
     </button>

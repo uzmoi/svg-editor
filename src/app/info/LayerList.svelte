@@ -41,8 +41,14 @@
   .layer {
     display: flex;
     > :first-child {
-      flex-grow: 1;
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      cursor: pointer;
     }
+    padding: 0.4em;
+    user-select: none;
     &[data-selected="true"] {
       background-color: var(--accent);
     }

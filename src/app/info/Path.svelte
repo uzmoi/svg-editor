@@ -6,8 +6,7 @@
   import Icon from "~/lib/Icon.svelte";
   import SortableList from "~/lib/SortableList.svelte";
   import { Vec2 } from "~/lib/vec";
-  import type { PathItem } from "../store/layer";
-  import { getPoints } from "../store/path-command";
+  import { getPoints, type PathItem } from "../store/path-item";
 
   export let path: Writable<readonly PathItem[]>;
 
@@ -18,6 +17,7 @@
   const addPathItem = (index: number) => {
     const pathItem: PathItem = {
       id: randString(8),
+      type: "command",
       command: {
         type: "Line",
         to: Vec2.square(0),
@@ -40,14 +40,14 @@
 >
   <div class="path-item">
     <div class="path-item-header">
-      <p>{pathItem.command.type}</p>
+      <p>{pathItem.type}</p>
       <button class="path-item-button" on:click={() => deletePathItem(pathItem.id)}>
         <Icon name="delete" />
       </button>
       <DragHandle {mousedown} />
     </div>
     <ul class="path-item-points">
-      {#each getPoints(pathItem.command) as [_pointKey, point]}
+      {#each getPoints(pathItem) as [_pointKey, point]}
         <li>
           <input type="number" value={point.x} />
           <input type="number" value={point.y} />
@@ -61,6 +61,9 @@
 </SortableList>
 
 <style lang="scss">
+  .path-item {
+    background-color: var(--bg-primary);
+  }
   .path-item-header {
     display: flex;
     font-size: 0.9em;

@@ -1,10 +1,5 @@
 import { Vec2 } from "~/lib/vec";
-import type { PathCommand } from "./path-command";
-
-export interface PathItem {
-  id: string;
-  command: PathCommand;
-}
+import type { PathItem } from "./path-item";
 
 export interface Layer {
   id: string;
@@ -20,6 +15,7 @@ export const layer = (id: string): Layer => ({
   path: [
     {
       id: "START",
+      type: "command",
       command: {
         type: "Move",
         to: Vec2.square(0),

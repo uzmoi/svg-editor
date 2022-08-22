@@ -87,6 +87,8 @@
   [data-transform="dragging"] {
     transition: transform 0s;
     transform: translateY(var(--drag-offset));
+    position: relative; // for z-index
+    z-index: 9999;
   }
   [data-transform="up"] {
     transform: translateY(calc(0px - var(--dragging-element-height)));

@@ -14,7 +14,7 @@
 
   const path = selector(
     layer,
-    layer => layer.path,
+    layer => layer?.path,
     path => {
       layer.update(layer => ({ ...layer, path }));
     },

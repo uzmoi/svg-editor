@@ -3,6 +3,7 @@
   import type { Writable } from "svelte/store";
   import { insertAt } from "~/lib/array";
   import DragHandle from "~/lib/DragHandle.svelte";
+  import Icon from "~/lib/Icon.svelte";
   import SortableList from "~/lib/SortableList.svelte";
   import { Vec2 } from "~/lib/vec";
   import type { PathItem } from "../store/layer";
@@ -24,6 +25,9 @@
     };
     $path = insertAt($path, index, pathItem);
   };
+  const deletePathItem = (id: string) => {
+    $path = $path.filter(pathItem => pathItem.id !== id);
+  };
 </script>
 
 <SortableList
@@ -37,6 +41,9 @@
   <div class="path-item">
     <div class="path-item-header">
       <p>{pathItem.command.type}</p>
+      <button class="path-item-button" on:click={() => deletePathItem(pathItem.id)}>
+        <Icon name="delete" />
+      </button>
       <DragHandle {mousedown} />
     </div>
     <ul class="path-item-points">
@@ -48,7 +55,7 @@
       {/each}
     </ul>
   </div>
-  <button class="add-path-item-button" on:click={() => addPathItem(index + 1)}>
+  <button class="path-item-button" on:click={() => addPathItem(index + 1)}>
     + add path item
   </button>
 </SortableList>
@@ -64,7 +71,7 @@
   .path-item-points {
     padding-left: 1em;
   }
-  .add-path-item-button {
+  .path-item-button {
     border: none;
     background-color: transparent;
     color: var(--pale-text);

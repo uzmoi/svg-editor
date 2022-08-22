@@ -25,7 +25,7 @@
   <div class="layer" data-selected={layer.id === $selectedLayerId}>
     <p
       on:click={() => {
-        $selectedLayerId = layer.id;
+        $selectedLayerId = layer.id === $selectedLayerId ? null : layer.id;
       }}
     >
       {layer.name}

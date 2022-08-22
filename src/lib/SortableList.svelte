@@ -67,13 +67,13 @@
 
 <svelte:window on:mousemove={handleMouseMove} on:mouseup={handleMouseUp} />
 
-<ul bind:this={containerEl} style:--dragging-element-height="{draggingElementHeight}px">
+<ul
+  bind:this={containerEl}
+  style:--dragging-element-height="{draggingElementHeight}px"
+  style:--drag-offset="{dragOffset}px"
+>
   {#each values as value, index (key(value))}
-    <li
-      transition:slide|local
-      data-transform={itemState(index)}
-      style:--drag-offset={draggingIndex === index ? dragOffset + "px" : undefined}
-    >
+    <li transition:slide|local data-transform={itemState(index)}>
       <slot {value} {index} mousedown={handleMouseDown(index)} />
     </li>
   {/each}

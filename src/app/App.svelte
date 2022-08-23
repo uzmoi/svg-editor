@@ -112,7 +112,7 @@
     @media (prefers-color-scheme: light) {
       --bg-primary: #eee;
       --bg-secondary: #ddd;
-      --accent: #88d;
+      --accent: #aaf;
       --text: #333;
       --pale-text: #666;
       --error: #d44;

@@ -10,6 +10,7 @@
   import { randString } from "emnorst";
   import { selectedLayer } from "./store/selection";
   import type { Writable } from "svelte/store";
+  import Button from "~/lib/Button.svelte";
 
   let canvasContainer: HTMLDivElement;
 
@@ -89,7 +90,7 @@
         <LayerList />
       </div>
       <div class="layer-actions">
-        <button on:click={addLayer}>add layer</button>
+        <Button on:click={addLayer}>add layer</Button>
       </div>
       <div class="layer-info">
         {#if $selectedLayer != null}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
+  import Button from "~/lib/Button.svelte";
   import Icon from "~/lib/Icon.svelte";
   import Radio from "~/lib/radio/Radio.svelte";
   import RadioGroup from "~/lib/radio/RadioGroup.svelte";
@@ -33,9 +34,9 @@
       value={$layer.name}
       on:input={handleChangeName}
     />
-    <button class="delete-button">
+    <Button variant="ghost">
       <Icon name="delete" />
-    </button>
+    </Button>
   </div>
   <RadioGroup name="layer-info-tab" bind:value={tab}>
     <div class="tabs">
@@ -69,12 +70,6 @@
   }
   .layer-profile {
     padding: 0.8em;
-  }
-  .delete-button {
-    border: none;
-    background-color: transparent;
-    color: inherit;
-    font-size: 1em;
   }
   .tabs {
     display: flex;

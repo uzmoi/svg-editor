@@ -2,6 +2,7 @@
   import { randString } from "emnorst";
   import type { Writable } from "svelte/store";
   import { insertAt } from "~/lib/array";
+  import Button from "~/lib/Button.svelte";
   import DragHandle from "~/lib/DragHandle.svelte";
   import Icon from "~/lib/Icon.svelte";
   import SortableList from "~/lib/SortableList.svelte";
@@ -41,9 +42,9 @@
   <div class="path-item">
     <div class="path-item-header">
       <p>{pathItem.type}</p>
-      <button class="path-item-button" on:click={() => deletePathItem(pathItem.id)}>
+      <Button variant="ghost" on:click={() => deletePathItem(pathItem.id)}>
         <Icon name="delete" />
-      </button>
+      </Button>
       <DragHandle {mousedown} />
     </div>
     <ul class="path-item-points">
@@ -55,9 +56,11 @@
       {/each}
     </ul>
   </div>
-  <button class="path-item-button" on:click={() => addPathItem(index + 1)}>
-    + add path item
-  </button>
+  <div class="path-item-button">
+    <Button variant="ghost" on:click={() => addPathItem(index + 1)}>
+      + add path item
+    </Button>
+  </div>
 </SortableList>
 
 <style lang="scss">
@@ -75,8 +78,6 @@
     padding-left: 1em;
   }
   .path-item-button {
-    border: none;
-    background-color: transparent;
     color: var(--pale-text);
     opacity: 1;
     transition: opacity 0.2s;

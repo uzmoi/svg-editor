@@ -1,5 +1,6 @@
 <script lang="ts">
   import { modifyById } from "~/lib/array";
+  import Button from "~/lib/Button.svelte";
   import DragHandle from "~/lib/DragHandle.svelte";
   import Icon from "~/lib/Icon.svelte";
   import SortableList from "~/lib/SortableList.svelte";
@@ -30,9 +31,9 @@
     >
       {layer.name}
     </p>
-    <button class="show-button" on:click={() => toggleShow(layer)}>
+    <Button variant="ghost" on:click={() => toggleShow(layer)}>
       <Icon name={layer.show ? "visibility" : "visibility_off"} />
-    </button>
+    </Button>
     <DragHandle {mousedown} />
   </div>
 </SortableList>
@@ -52,11 +53,5 @@
     &[data-selected="true"] {
       background-color: var(--accent);
     }
-  }
-  .show-button {
-    border: none;
-    background-color: transparent;
-    color: inherit;
-    font-size: 1em;
   }
 </style>
